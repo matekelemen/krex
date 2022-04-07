@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Parse arguments (select compiler)
+case $# in
+    0)
+        CC=gcc
+        CXX=g++
+        ;;
+    1)
+        if [ $1 -eq gcc ]; then
+            CC=gcc
+            CXX=g++
+        elif [ $1 -eq clang ]; then
+            CC=clang
+            CXX=clang++
+        else
+            CC=$1
+            CXX=$1
+        fi
+        ;;
+    *)
+        echo "too many arguments"
+        exit 1
+esac
+
+# Function to add apps
+add_app () {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
+# Set basic configuration
+KRATOS_BUILD_TYPE="FullDebug"
+KRATOS_CXX_FLAGS=""
+PYTHON_EXECUTABLE=$(which python3)
+
+# Set variables
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+KRATOS_SOURCE_DIR="$(dirname "${SCRIPT_DIR}")"
+KRATOS_BUILD_DIR="${KRATOS_SOURCE_DIR}/build/${KRATOS_BUILD_TYPE}_${CC}"
+KRATOS_INSTALL_DIR="${KRATOS_BUILD_DIR}/install"
+KRATOS_APP_DIR="${KRATOS_SOURCE_DIR}/applications"
+export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+
+# Set applications to compile
+export KRATOS_APPLICATIONS=
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+add_app ${KRATOS_APP_DIR}/HDF5Application
+add_app ${KRATOS_APP_DIR}/TrilinosApplication
+add_app ${KRATOS_APP_DIR}/MetisApplication
+#add_app ${KRATOS_APP_DIR}/FreeSurfaceApplication
+#add_app ${KRATOS_APP_DIR}/WindEngineeringApplication
+
+# Clean
+rm -rf "${KRATOS_BUILD_DIR}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
+rm -rf "${KRATOS_BUILD_DIR}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
+rm -rf "${KRATOS_BUILD_DIR}/${KRATOS_BUILD_TYPE}/CMakeFiles"
+
+# Configure
+mkdir -p $KRATOS_BUILD_DIR $KRATOS_INSTALL_DIR
+cmake   -H"${KRATOS_SOURCE_DIR}"                        \
+        -B"${KRATOS_BUILD_DIR}"                         \
+        -DCMAKE_BUILD_TYPE=${KRATOS_BUILD_TYPE}         \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache            \
+        -DCMAKE_INSTALL_PREFIX="$KRATOS_INSTALL_DIR"    \
+        -DCMAKE_CXX_FLAGS=${KRATOS_CXX_FLAGS}           \
+        -DUSE_MPI=ON                                    \
+        -DUSE_EIGEN_MKL=OFF
+
+# Buid
+#cmake --build "${KRATOS_BUILD_DIR}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+cd "${KRATOS_BUILD_DIR}"
+unbuffer make install -j$(nproc) | tee compile.log
