@@ -1,0 +1,4 @@
+# Belongs in <project_root>/.git/info/exclude
+.cache
+scripts/build
+
