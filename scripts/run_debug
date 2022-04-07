@@ -1,0 +1,114 @@
+#!/bin/python
+
+# --- STL Imports ---
+import pathlib
+import sys
+import os
+import subprocess
+
+
+def ParseArguments(args: list[str]) -> tuple[str, pathlib.Path, list[str]]:
+    """
+    Parse the passed list of arguments.
+
+    The first argument must be a path to an executable or a script,
+    the rest of the arguments are not checked and will be passed
+    to the executable/script when calling them.
+
+    Return:
+        - the command that launches the executable/script
+        - the path to the executable/script
+        - rest of the arguments in a list
+    """
+    # The first argument is required and must be a path to a python script or an executable
+    args = args.copy()
+    if not args:
+        raise ValueError("Missing positional argument: 'file_path'")
+
+    file_path = pathlib.Path(args.pop(0))
+    if file_path.is_file():
+        file_path = file_path.resolve().absolute()
+
+        # It's a file, but is it an executable or a script?
+        if os.access(str(file_path), os.X_OK): # an executable
+            run_command = ""
+        else: # not an executable
+            if file_path.suffix == ".py": # python script
+                run_command = sys.executable
+            else:  # doesn't have the standard python script extension
+                with open(file_path, "r") as file:
+                    first_line = file.readline()
+                    if first_line.startswith("#!"): # has a magic shell command
+                        run_command = first_line[2:]
+                    else: # no idea what it is
+                        raise ValueError("'{}' is neither a script nor an executable, or the user has no access to it".format(file_path))
+    else: # It's not a file => definitely an error
+        message = "'{}' ".format(file_path)
+        if file_path.is_directory():
+            raise ValueError(message + "is a directory")
+        else:
+            raise ValueError(message + "does not exist")
+
+    return run_command, file_path, args
+
+
+def GetLauncherTemplate() -> dict:
+    """Returns a dictionary that should be filled and then written to the .vscode/launcher.json of the project."""
+    return dict((
+        ("version", "0.2.0"),
+        ("configurations", [
+                dict((
+                ("name", "gdb-single-threaded"),
+                ("type", "cppdbg"),
+                ("request", "launch"),
+                ("program", ""),
+                ("args", []),
+                ("stopAtEntry", False),
+                ("cwd", os.getcwd()),
+                ("environment", [dict((
+                    ("name", "OMP_NUM_THREADS"),
+                    ("value", "1")
+                ))]),
+                ("externalConsole", False),
+                ("MIMode", "gdb"),
+                ("setupCommands", [dict((
+                    ("description", "Enable pretty-printing in gdb"),
+                    ("text", "-enable-pretty-printing"),
+                    ("ignoreFailures", True)
+                ))])
+            ))]
+        )
+    ))
+
+
+if __name__ == "__main__":
+    settings = GetLauncherTemplate()
+    launcher, file_path, arguments = ParseArguments(sys.argv[1:])
+
+    for configuration in settings["configurations"]:
+        configuration["program"] = launcher
+        configuration["args"] = [str(file_path)] + arguments
+
+    # Get kratos source directory
+    if "KRATOS_SOURCE_DIR" in os.environ:
+        kratos_source_directory = os.environ("KRATOS_SOURCE_DIR")
+    else:
+        directory = file_path.parent
+        kratos_source_directory = pathlib.Path(subprocess.check_output("cd {} && git rev-parse --show-toplevel".format(directory), shell = True).decode("utf-8").strip())
+
+    # Write the launcher to ${kratos_source_dir}/.vscode.launch.json
+    target_directory = kratos_source_directory / ".vscode"
+    target_directory.mkdir(exist_ok = True, parents = True)
+
+    with open(target_directory / "launch.json", "w") as file:
+        import json
+        json.dump(settings, file, indent = "    ")
+
+    # Get the PID of VSCode
+    PIDs = [pid.strip() for pid in subprocess.check_output(["xdotool", "search", "-class", "code"]).decode("utf-8").split("\n") if pid.strip()]
+    PID = PIDs[0]
+
+    active_window = subprocess.check_output(["xdotool", "getactivewindow"]).decode("utf-8").strip()
+
+    # Send the debug keystroke to VSCode
+    subprocess.run("xdotool windowactivate {} && xdotool key F5 && xdotool windowactivate {}".format(PID, active_window), shell = True)

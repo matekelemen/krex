@@ -1,0 +1,9 @@
+.vscode
+.vs
+
+.cache
+
+*.pyc
+*.pyd
+__pycache__
+
