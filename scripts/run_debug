@@ -1,5 +1,33 @@
 #!/bin/python
 
+# run_debug SCRIPT_PATH [ARGUMENTS...]
+#
+# This script creates a VSCode debug configuration file and runs a debug session
+# for the specified script or executable. Additional arguments are forwarded to the
+# script/executable. Linux only for now, and the "xdotool" package must be installed.
+#
+# Notes:
+# The implementation is quite nasty but works if you keep a couple of things in mind:
+#   - The script/executable must be within the source repository, or the KRATOS_SOURCE_DIR
+#     environment variable must be set to the root of the Kratos repo.
+#   - Exactly one instance of VSCode must be open.
+#   - The <source_dir>/.vscode/launch.json configuration file gets overwritten.
+#
+# Details:
+#   - This script is primarily meant for running python scripts, or perhaps executables.
+#     Other script types might work but they haven't been tested. If the current user
+#     has executable rights to the file, it will be considered an executable and called
+#     directly. If the file has a python script extension ".py", it is classified as a
+#     python script. Otherwise, if the first line of the file is a magic command
+#     (begins with "#!"), the file is considered a script that can be interpereted using
+#     the executable the magic command points to (python, bash, etc.).
+#   - VSCode seems to be broken down into several processes, and I can't tell which is
+#     responsible for what. This script just grabs the first process that gets listed
+#     for the search term "code". Consequently, you really should have one VSCode instance
+#     open, otherwise the debug session might be launched in another one.
+#   - A Ctrl + Shift + F5 keystroke is sent to the grabbed process, so your VSCode debug
+#     session start must be bound to it (default).
+
 # --- STL Imports ---
 import pathlib
 import sys
@@ -111,4 +139,4 @@ if __name__ == "__main__":
     active_window = subprocess.check_output(["xdotool", "getactivewindow"]).decode("utf-8").strip()
 
     # Send the debug keystroke to VSCode
-    subprocess.run("xdotool windowactivate {} && xdotool key F5 && xdotool windowactivate {}".format(PID, active_window), shell = True)
+    subprocess.run("xdotool windowactivate {} && xdotool key Ctrl + Shift + F5 && xdotool windowactivate {}".format(PID, active_window), shell = True)
