@@ -59,7 +59,7 @@ def ParseArguments(args: list[str]) -> tuple[str, pathlib.Path, list[str]]:
 
         # It's a file, but is it an executable or a script?
         if os.access(str(file_path), os.X_OK): # an executable
-            run_command = ""
+            run_command = str(file_path)
         else: # not an executable
             if file_path.suffix == ".py": # python script
                 run_command = sys.executable
