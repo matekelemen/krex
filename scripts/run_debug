@@ -60,24 +60,28 @@ def ParseArguments(args: list[str]) -> tuple[str, pathlib.Path, list[str]]:
         # It's a file, but is it an executable or a script?
         if os.access(str(file_path), os.X_OK): # an executable
             run_command = str(file_path)
+            debug_type = cppdbg
         else: # not an executable
             if file_path.suffix == ".py": # python script
-                run_command = sys.executable
+                run_command = str(file_path)
+                debug_type = "python"
             else:  # doesn't have the standard python script extension
                 with open(file_path, "r") as file:
                     first_line = file.readline()
                     if first_line.startswith("#!"): # has a magic shell command
                         run_command = first_line[2:]
+                        args = [str(file_path)] + args
+                        debug_type = pathlib.Path(first_line[2:]).stem
                     else: # no idea what it is
                         raise ValueError("'{}' is neither a script nor an executable, or the user has no access to it".format(file_path))
     else: # It's not a file => definitely an error
         message = "'{}' ".format(file_path)
-        if file_path.is_directory():
+        if file_path.is_dir():
             raise ValueError(message + "is a directory")
         else:
             raise ValueError(message + "does not exist")
 
-    return run_command, file_path, args
+    return run_command, debug_type, file_path, args
 
 
 def GetLauncherTemplate() -> dict:
@@ -87,7 +91,7 @@ def GetLauncherTemplate() -> dict:
         ("configurations", [
                 dict((
                 ("name", "gdb-single-threaded"),
-                ("type", "cppdbg"),
+                ("type", ""),
                 ("request", "launch"),
                 ("program", ""),
                 ("args", []),
@@ -111,11 +115,12 @@ def GetLauncherTemplate() -> dict:
 
 if __name__ == "__main__":
     settings = GetLauncherTemplate()
-    launcher, file_path, arguments = ParseArguments(sys.argv[1:])
+    launcher, debug_type, file_path, arguments = ParseArguments(sys.argv[1:])
 
     for configuration in settings["configurations"]:
         configuration["program"] = launcher
-        configuration["args"] = [str(file_path)] + arguments
+        configuration["type"] = debug_type
+        configuration["args"] = arguments
 
     # Get kratos source directory
     if "KRATOS_SOURCE_DIR" in os.environ:
