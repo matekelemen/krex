@@ -1,0 +1,6 @@
+LinearSolversApplication
+StructuralMechanicsApplication
+FluidDynamicsApplication
+HDF5Application
+TrilinosApplication
+MetisApplication
