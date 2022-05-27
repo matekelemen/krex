@@ -79,7 +79,7 @@ fi
 # Set variables
 source_dir="$(dirname "${SCRIPT_DIR}")"
 build_dir="${source_dir}/build/${build_type}_${CC}"
-install_dir="${build_dir}/install"
+install_dir=$(get_site_packages_dir)
 kratos_app_dir="${source_dir}/applications"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
@@ -123,6 +123,3 @@ unbuffer cmake                                          \
 # Build
 cd "${build_dir}"
 unbuffer make install -j$(nproc) | tee compile.log
-
-# Copy the built kratos module to the current site-packages directory
-cp -r "${install_dir}/KratosMultiphysics" $(get_site_packages_dir)
