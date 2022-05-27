@@ -59,7 +59,8 @@ def ParseArguments(args: list[str]) -> tuple[str, pathlib.Path, list[str]]:
 
         # It's a file, but is it an executable or a script?
         if os.access(str(file_path), os.X_OK): # an executable
-            run_command = ""
+            run_command = str(file_path)
+            file_path = pathlib.Path()
         else: # not an executable
             if file_path.suffix == ".py": # python script
                 run_command = sys.executable
@@ -93,10 +94,12 @@ def GetLauncherTemplate() -> dict:
                 ("args", []),
                 ("stopAtEntry", False),
                 ("cwd", os.getcwd()),
-                ("environment", [dict((
-                    ("name", "OMP_NUM_THREADS"),
-                    ("value", "1")
-                ))]),
+                ("environment", [
+                    dict((
+                        ("name", "OMP_NUM_THREADS"),
+                        ("value", "1")
+                    ))
+                ]),
                 ("externalConsole", False),
                 ("MIMode", "gdb"),
                 ("setupCommands", [dict((
