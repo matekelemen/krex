@@ -24,7 +24,7 @@ clean=0
 app_file_path="${SCRIPT_DIR}/default_apps.txt"
 
 # Parse CL arguments
-while getopts ":h:C|t:c:o:a:" arg; do
+while getopts ":hC|t:c:o:a:" arg; do
     case $arg in
         h)  # Print help and exit without doing anything.
             print_help
