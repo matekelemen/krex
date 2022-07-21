@@ -90,7 +90,9 @@ def GetLauncherTemplate() -> dict:
         ("version", "0.2.0"),
         ("configurations", [
                 dict((
-                ("name", "gdb-single-threaded"),
+                ("name", "generated-debug"),
+                ("console", "internalConsole"),
+                ("internalConsoleOptions", "neverOpen"),
                 ("type", ""),
                 ("request", "launch"),
                 ("program", ""),
