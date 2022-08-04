@@ -1,0 +1,3 @@
+[submodule "external/kratos"]
+	path = external/kratos
+	url = https://github.com/kratosmultiphysics/kratos
