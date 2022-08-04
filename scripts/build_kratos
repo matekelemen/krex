@@ -15,13 +15,13 @@ print_help() {
 }
 
 # Set default arguments
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 build_type="FullDebug"
 compiler_family="gcc"
 compile_opts=""
 clean=0
-app_file_path="${SCRIPT_DIR}/default_apps.txt"
+app_file_path="${script_dir}/default_apps.txt"
 
 # Parse CL arguments
 while getopts ":hC|t:c:o:a:" arg; do
@@ -77,8 +77,8 @@ else
 fi
 
 # Set variables
-source_dir="$(dirname "${SCRIPT_DIR}")"
-build_dir="${source_dir}/build/${build_type}_${CC}"
+source_dir="$(dirname "${script_dir}")/external/kratos"
+build_dir="$(dirname "${script_dir}")/build/kratos/${build_type}_${CC}"
 install_dir=$(get_site_packages_dir)
 kratos_app_dir="${source_dir}/applications"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
