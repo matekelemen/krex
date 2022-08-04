@@ -1,4 +1,2 @@
-# Belongs in <project_root>/.git/info/exclude
+# Belongs in <project_root>/.git/modules/external/kratos/info/exclude
 .cache
-scripts/build
-
