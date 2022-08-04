@@ -98,6 +98,7 @@ def GetLauncherTemplate() -> dict:
                 ("program", ""),
                 ("args", []),
                 ("stopAtEntry", False),
+                ("justMyCode", False),
                 ("cwd", os.getcwd()),
                 ("environment", [dict((
                     ("name", "OMP_NUM_THREADS"),
