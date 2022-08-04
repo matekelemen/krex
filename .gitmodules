@@ -1,3 +1,6 @@
 [submodule "external/kratos"]
 	path = external/kratos
 	url = https://github.com/kratosmultiphysics/kratos
+[submodule "external/cie"]
+	path = external/cie
+	url = https://github.com/matekelemen/cie.git
