@@ -1,9 +1,7 @@
-.vscode
-.vs
+/*
+!.gitignore
+!external
+!scripts
+!CMakeLists.txt
 
-.cache
-
-*.pyc
-*.pyd
-__pycache__
-
+*.cache
