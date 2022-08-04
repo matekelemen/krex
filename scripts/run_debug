@@ -18,9 +18,9 @@
 #     Other script types might work but they haven't been tested. If the current user
 #     has executable rights to the file, it will be considered an executable and called
 #     directly. If the file has a python script extension ".py", it is classified as a
-#     python script. Otherwise, if the first line of the file is a magic command
+#     python script. Otherwise, if the first line of the file is a shebang
 #     (begins with "#!"), the file is considered a script that can be interpereted using
-#     the executable the magic command points to (python, bash, etc.).
+#     the executable the shebang points to (python, bash, etc.).
 #   - VSCode seems to be broken down into several processes, and I can't tell which is
 #     responsible for what. This script just grabs the first process that gets listed
 #     for the search term "code". Consequently, you really should have one VSCode instance
@@ -60,7 +60,8 @@ def ParseArguments(args: list[str]) -> tuple[str, pathlib.Path, list[str]]:
         # It's a file, but is it an executable or a script?
         if os.access(str(file_path), os.X_OK): # an executable
             run_command = str(file_path)
-            debug_type = cppdbg
+            file_path = pathlib.Path()
+            debug_type = "cppdbg"
         else: # not an executable
             if file_path.suffix == ".py": # python script
                 run_command = str(file_path)
@@ -100,10 +101,12 @@ def GetLauncherTemplate() -> dict:
                 ("stopAtEntry", False),
                 ("justMyCode", False),
                 ("cwd", os.getcwd()),
-                ("environment", [dict((
-                    ("name", "OMP_NUM_THREADS"),
-                    ("value", "1")
-                ))]),
+                ("environment", [
+                    dict((
+                        ("name", "OMP_NUM_THREADS"),
+                        ("value", "1")
+                    ))
+                ]),
                 ("externalConsole", False),
                 ("MIMode", "gdb"),
                 ("setupCommands", [dict((
