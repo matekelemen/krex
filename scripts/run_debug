@@ -35,7 +35,7 @@ import os
 import subprocess
 
 
-def ParseArguments(args: list[str]) -> tuple[str, pathlib.Path, list[str]]:
+def ParseArguments(args: "list[str]") -> "tuple[str, pathlib.Path, list[str]]":
     """
     Parse the passed list of arguments.
 
@@ -130,13 +130,13 @@ if __name__ == "__main__":
 
     # Get kratos source directory
     if "KRATOS_SOURCE_DIR" in os.environ:
-        kratos_source_directory = os.environ("KRATOS_SOURCE_DIR")
+        kratos_source_directory = os.environ["KRATOS_SOURCE_DIR"]
     else:
         directory = file_path.parent
         kratos_source_directory = pathlib.Path(subprocess.check_output("cd {} && git rev-parse --show-toplevel".format(directory), shell = True).decode("utf-8").strip())
 
     # Write the launcher to ${kratos_source_dir}/.vscode.launch.json
-    target_directory = kratos_source_directory / ".vscode"
+    target_directory = pathlib.Path(kratos_source_directory) / ".vscode"
     target_directory.mkdir(exist_ok = True, parents = True)
 
     with open(target_directory / "launch.json", "w") as file:
