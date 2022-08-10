@@ -33,6 +33,7 @@ import pathlib
 import sys
 import os
 import subprocess
+import json
 
 
 def ParseArguments(args: "list[str]") -> "tuple[str, pathlib.Path, list[str]]":
@@ -87,36 +88,32 @@ def ParseArguments(args: "list[str]") -> "tuple[str, pathlib.Path, list[str]]":
 
 def GetLauncherTemplate() -> dict:
     """Returns a dictionary that should be filled and then written to the .vscode/launcher.json of the project."""
-    return dict((
-        ("version", "0.2.0"),
-        ("configurations", [
-                dict((
-                ("name", "generated-debug"),
-                ("console", "internalConsole"),
-                ("internalConsoleOptions", "neverOpen"),
-                ("type", ""),
-                ("request", "launch"),
-                ("program", ""),
-                ("args", []),
-                ("stopAtEntry", False),
-                ("justMyCode", False),
-                ("cwd", os.getcwd()),
-                ("environment", [
-                    dict((
-                        ("name", "OMP_NUM_THREADS"),
-                        ("value", "1")
-                    ))
-                ]),
-                ("externalConsole", False),
-                ("MIMode", "gdb"),
-                ("setupCommands", [dict((
-                    ("description", "Enable pretty-printing in gdb"),
-                    ("text", "-enable-pretty-printing"),
-                    ("ignoreFailures", True)
-                ))])
-            ))]
-        )
-    ))
+    return json.loads("""{
+        "version" : "0.2.0",
+        "configurations" : [{
+            "name" : "generated-debug",
+            "console" : "internalConsole",
+            "internalConsoleOptions" : "neverOpen",
+            "type" : "",
+            "request" : "launch",
+            "program" : "",
+            "args" : [],
+            "stopAtEntry" : false,
+            "justMyCode" : false,
+            "cwd" : "",
+            "external_console" : false,
+            "MIMode" : "gdb",
+            "setupCommands" : {
+                "description" : "Enable pretty-printing in gdb",
+                "text" : "-enable-pretty-printing",
+                "ignoreFailures" : true
+            },
+            "environment" : {
+                "name" : "OMP_NUM_THREADS",
+                "value" : "1"
+            }
+        }]
+    }""")
 
 
 if __name__ == "__main__":
@@ -140,7 +137,6 @@ if __name__ == "__main__":
     target_directory.mkdir(exist_ok = True, parents = True)
 
     with open(target_directory / "launch.json", "w") as file:
-        import json
         json.dump(settings, file, indent = "    ")
 
     # Get the PID of VSCode
