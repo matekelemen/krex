@@ -112,15 +112,16 @@ export CXX=$(which $CXX)
 
 # Configure
 mkdir -p "$build_dir" "$install_dir" "$kratos_build_dir"
-unbuffer cmake                                          \
-        -H"${source_dir}"                               \
-        -B"${kratos_build_dir}"                         \
-        -DCMAKE_BUILD_TYPE=${build_type}                \
-        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache            \
-        -DCMAKE_INSTALL_PREFIX="$install_dir"           \
-        -DCMAKE_CXX_FLAGS=${compile_opts}               \
-        -DUSE_MPI=ON                                    \
-        -DUSE_EIGEN_MKL=OFF                             \
+unbuffer cmake                                 \
+        -H"${source_dir}"                      \
+        -B"${kratos_build_dir}"                \
+        -DCMAKE_BUILD_TYPE=${build_type}       \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache   \
+        -DCMAKE_INSTALL_PREFIX="$install_dir"  \
+        -DCMAKE_CXX_FLAGS=${compile_opts}      \
+        -DUSE_MPI=ON                           \
+        -DUSE_EIGEN_MKL=OFF                    \
+        -DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON \
         | tee ${build_dir}/configure.log
 
 # Build
