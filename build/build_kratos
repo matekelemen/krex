@@ -1,0 +1,128 @@
+#!/bin/bash
+
+#set -e
+
+print_help() {
+    echo "Build and install KratosMultiphysics."
+    echo "Usage: build [OPTIONS]"
+    echo "[-h|C|t|c|o|a]"
+    echo "h     print this help and exit"
+    echo "C     clean build and install directories, then exit"
+    echo "t     build type [FullDebug, Debug, Release] (Default: FullDebug)"
+    echo "c     compiler [gcc, clang] (Default: gcc)"
+    echo "o     additional compile options (Default: no additional compile options)"
+    echo "a     path to a file containing applications' names to be compiled (Default: <this_dir>/default_apps.txt)"
+}
+
+# Set default arguments
+script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+build_type="FullDebug"
+compiler_family="gcc"
+compile_opts=""
+clean=0
+app_file_path="${script_dir}/default_apps.txt"
+
+# Parse CL arguments
+while getopts ":hC|t:c:o:a:" arg; do
+    case $arg in
+        h)  # Print help and exit without doing anything.
+            print_help
+            exit 0
+            ;;
+        C)  # Set clean flag
+            clean=1
+            ;;
+        t)  # Select build type
+            build_type="${OPTARG}"
+            (("${build_type}" == "FullDebug" || "${build_type}" == "Debug" || "${build_type}" == "Release")) || (print_help && echo "Invalid build type: ${build_type}" && exit 1)
+            ;;
+        c)  # Select compilers
+            compiler_family="${OPTARG}"
+            ;;
+        o)  # Set compiler options
+            compile_opts="${OPTARG}"
+            ;;
+        a)  # Set path to a file containing a list of applications' names to be compiled
+            app_file_path="${OPTARG}"
+            ;;
+        \?) # Invalid argument
+            echo "Unsupported argument: ${OPTARG}"
+            exit 1
+    esac
+done
+
+# Function definitions
+add_application () {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
+get_site_packages_dir() {
+    echo $(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+}
+
+# Set basic configuration
+python_executable=$(which python3)
+
+if [ "${compiler_family}" == "gcc" ]; then
+    CC="gcc"
+    CXX="g++"
+elif [ "${compiler_family}" == "clang" ]; then
+    CC="clang"
+    CXX="clang++"
+else
+    print_help
+    echo "Unsupported compiler: ${compile_opts}"
+    exit 1
+fi
+
+# Set variables
+source_dir="$(dirname "${script_dir}")"
+build_dir="$(dirname "${script_dir}")/build"
+install_dir=$(get_site_packages_dir)
+
+kratos_source_dir="${source_dir}/external/kratos"
+kratos_build_dir="${build_dir}/kratos/${build_type}_${CC}"
+kratos_app_dir="${kratos_source_dir}/applications"
+export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+
+# Collect and set applications to compile
+if [ -f "${app_file_path}" ]; then
+    export KRATOS_APPLICATIONS=
+    app_names=($(cat ${app_file_path}))
+    for app_name in "${app_names[@]}"; do
+        add_application ${kratos_app_dir}/${app_name}
+    done
+else
+    echo "App list file not found: ${app_file_path}"
+    exit 1
+fi
+
+# Clean
+if [ $clean -eq 1 ]; then
+    kratos_module_dir=$(get_site_packages_dir)/KratosMultiphysics
+    [ -d "${kratos_module_dir}" ] && rm -rf "${kratos_module_dir}"
+    [ -d "${build_dir}" ] && rm -rf "${build_dir}"
+    exit 0
+fi
+
+# Set compilers in the environment
+export CC=$(which $CC)
+export CXX=$(which $CXX)
+
+# Configure
+mkdir -p "$build_dir" "$install_dir" "$kratos_build_dir"
+unbuffer cmake                                          \
+        -H"${source_dir}"                               \
+        -B"${kratos_build_dir}"                         \
+        -DCMAKE_BUILD_TYPE=${build_type}                \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache            \
+        -DCMAKE_INSTALL_PREFIX="$install_dir"           \
+        -DCMAKE_CXX_FLAGS=${compile_opts}               \
+        -DUSE_MPI=ON                                    \
+        -DUSE_EIGEN_MKL=OFF                             \
+        | tee ${build_dir}/configure.log
+
+# Build
+cd "${kratos_build_dir}"
+unbuffer make install -j$(nproc) | tee compile.log
