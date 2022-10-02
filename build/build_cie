@@ -3,6 +3,7 @@
 # --- STD Imports ---
 import pathlib
 import importlib.util
+import importlib.machinery
 import sys
 
 
@@ -17,7 +18,7 @@ defaultBuildType = "Release"
 defaultBuildDirectory = sourceDirectory / "build" / "cie"
 
 customDefaults = [
-    (["-t", "--build-type"], defaultBuildType)
+    (["-t", "--build-type"], defaultBuildType),
     (["-o", "--build-dir"], str(defaultBuildDirectory))
 ]
 
@@ -27,9 +28,9 @@ for keys, value in customDefaults:
         argv += [keys[-1], value]
 
 # Import the CiE build script
-鸞 = importlib.util("cie", str(cieBuildScriptPath))
+丈 = importlib.machinery.SourceFileLoader("小", str(cieBuildScriptPath))
+鸞 = importlib.util.spec_from_loader(丈.name, 丈)
 cie = importlib.util.module_from_spec(鸞)
-sys.modules["module.name"] = cie
 鸞.loader.exec_module(cie)
 
 # Build with custom defaults
