@@ -11,7 +11,7 @@ print_help() {
     echo "t     build type [FullDebug, Debug, Release] (Default: FullDebug)"
     echo "c     compiler [gcc, clang] (Default: gcc)"
     echo "o     additional compile options (Default: no additional compile options)"
-    echo "a     path to a file containing applications' names to be compiled (Default: <this_dir>/default_apps.txt)"
+    echo "a     path to a file containing applications' names to be compiled (Default: <this_dir>/kratos_default_apps.txt)"
 }
 
 # Set default arguments
@@ -21,7 +21,7 @@ build_type="FullDebug"
 compiler_family="gcc"
 compile_opts=""
 clean=0
-app_file_path="${script_dir}/default_apps.txt"
+app_file_path="${script_dir}/kratos_default_apps.txt"
 
 # Parse CL arguments
 while getopts ":hC|t:c:o:a:" arg; do
@@ -72,7 +72,7 @@ elif [ "${compiler_family}" == "clang" ]; then
     CXX="clang++"
 else
     print_help
-    echo "Unsupported compiler: ${compile_opts}"
+    echo "Unsupported compiler: ${compiler_family}"
     exit 1
 fi
 
@@ -121,6 +121,7 @@ unbuffer cmake                                          \
         -DCMAKE_CXX_FLAGS=${compile_opts}               \
         -DUSE_MPI=ON                                    \
         -DUSE_EIGEN_MKL=OFF                             \
+        -DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON          \
         | tee ${build_dir}/configure.log
 
 # Build
