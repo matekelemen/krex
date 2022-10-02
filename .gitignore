@@ -3,5 +3,6 @@
 !external
 !scripts
 !CMakeLists.txt
+!build
 
 *.cache
