@@ -88,7 +88,7 @@ def ParseArguments(args: "list[str]") -> "tuple[str, pathlib.Path, list[str]]":
 
 def GetLauncherTemplate() -> dict:
     """Returns a dictionary that should be filled and then written to the .vscode/launcher.json of the project."""
-    return json.loads("""{
+    settings =  json.loads("""{
         "version" : "0.2.0",
         "configurations" : [{
             "name" : "generated-debug",
@@ -115,10 +115,18 @@ def GetLauncherTemplate() -> dict:
         }]
     }""")
 
+    for configuration in settings["configurations"]:
+        configuration["cwd"] = os.getcwd()
+    return settings
+
 
 if __name__ == "__main__":
     settings = GetLauncherTemplate()
     launcher, debug_type, file_path, arguments = ParseArguments(sys.argv[1:])
+    print(f"launcher: {launcher}")
+    print(f"debug_type: {debug_type}")
+    print(f"file_path: {file_path}")
+    print(f"arguments: {arguments}")
 
     for configuration in settings["configurations"]:
         configuration["program"] = launcher
@@ -129,8 +137,12 @@ if __name__ == "__main__":
     if "KRATOS_SOURCE_DIR" in os.environ:
         kratos_source_directory = os.environ["KRATOS_SOURCE_DIR"]
     else:
-        directory = file_path.parent
-        kratos_source_directory = pathlib.Path(subprocess.check_output("cd {} && git rev-parse --show-toplevel".format(directory), shell = True).decode("utf-8").strip())
+        for directory in (pathlib.Path(os.getcwd()), file_path.parent):
+            try:
+                kratos_source_directory = pathlib.Path(subprocess.check_output("cd {} && git rev-parse --show-toplevel".format(directory), shell = True).decode("utf-8").strip())
+            except Exception as exception:
+                continue
+            break
 
     # Write the launcher to ${kratos_source_dir}/.vscode.launch.json
     target_directory = pathlib.Path(kratos_source_directory) / ".vscode"
