@@ -33,9 +33,10 @@ import pathlib
 import sys
 import os
 import subprocess
+import json
 
 
-def ParseArguments(args: list[str]) -> tuple[str, pathlib.Path, list[str]]:
+def ParseArguments(args: "list[str]") -> "tuple[str, pathlib.Path, list[str]]":
     """
     Parse the passed list of arguments.
 
@@ -87,41 +88,45 @@ def ParseArguments(args: list[str]) -> tuple[str, pathlib.Path, list[str]]:
 
 def GetLauncherTemplate() -> dict:
     """Returns a dictionary that should be filled and then written to the .vscode/launcher.json of the project."""
-    return dict((
-        ("version", "0.2.0"),
-        ("configurations", [
-                dict((
-                ("name", "generated-debug"),
-                ("console", "internalConsole"),
-                ("internalConsoleOptions", "neverOpen"),
-                ("type", ""),
-                ("request", "launch"),
-                ("program", ""),
-                ("args", []),
-                ("stopAtEntry", False),
-                ("justMyCode", False),
-                ("cwd", os.getcwd()),
-                ("environment", [
-                    dict((
-                        ("name", "OMP_NUM_THREADS"),
-                        ("value", "1")
-                    ))
-                ]),
-                ("externalConsole", False),
-                ("MIMode", "gdb"),
-                ("setupCommands", [dict((
-                    ("description", "Enable pretty-printing in gdb"),
-                    ("text", "-enable-pretty-printing"),
-                    ("ignoreFailures", True)
-                ))])
-            ))]
-        )
-    ))
+    settings =  json.loads("""{
+        "version" : "0.2.0",
+        "configurations" : [{
+            "name" : "generated-debug",
+            "console" : "internalConsole",
+            "internalConsoleOptions" : "neverOpen",
+            "type" : "",
+            "request" : "launch",
+            "program" : "",
+            "args" : [],
+            "stopAtEntry" : false,
+            "justMyCode" : false,
+            "cwd" : "",
+            "external_console" : false,
+            "MIMode" : "gdb",
+            "setupCommands" : {
+                "description" : "Enable pretty-printing in gdb",
+                "text" : "-enable-pretty-printing",
+                "ignoreFailures" : true
+            },
+            "environment" : {
+                "name" : "OMP_NUM_THREADS",
+                "value" : "1"
+            }
+        }]
+    }""")
+
+    for configuration in settings["configurations"]:
+        configuration["cwd"] = os.getcwd()
+    return settings
 
 
 if __name__ == "__main__":
     settings = GetLauncherTemplate()
     launcher, debug_type, file_path, arguments = ParseArguments(sys.argv[1:])
+    print(f"launcher: {launcher}")
+    print(f"debug_type: {debug_type}")
+    print(f"file_path: {file_path}")
+    print(f"arguments: {arguments}")
 
     for configuration in settings["configurations"]:
         configuration["program"] = launcher
@@ -130,21 +135,24 @@ if __name__ == "__main__":
 
     # Get kratos source directory
     if "KRATOS_SOURCE_DIR" in os.environ:
-        kratos_source_directory = os.environ("KRATOS_SOURCE_DIR")
+        kratos_source_directory = os.environ["KRATOS_SOURCE_DIR"]
     else:
-        directory = file_path.parent
-        kratos_source_directory = pathlib.Path(subprocess.check_output("cd {} && git rev-parse --show-toplevel".format(directory), shell = True).decode("utf-8").strip())
+        for directory in (pathlib.Path(os.getcwd()), file_path.parent):
+            try:
+                kratos_source_directory = pathlib.Path(subprocess.check_output("cd {} && git rev-parse --show-toplevel".format(directory), shell = True).decode("utf-8").strip())
+            except Exception as exception:
+                continue
+            break
 
     # Write the launcher to ${kratos_source_dir}/.vscode.launch.json
-    target_directory = kratos_source_directory / ".vscode"
+    target_directory = pathlib.Path(kratos_source_directory) / ".vscode"
     target_directory.mkdir(exist_ok = True, parents = True)
 
     with open(target_directory / "launch.json", "w") as file:
-        import json
         json.dump(settings, file, indent = "    ")
 
     # Get the PID of VSCode
-    PIDs = [pid.strip() for pid in subprocess.check_output(["xdotool", "search", "-class", "code"]).decode("utf-8").split("\n") if pid.strip()]
+    PIDs = [pid.strip() for pid in subprocess.check_output(["xdotool", "search", "--name", "Visual Studio Code"]).decode("utf-8").split("\n") if pid.strip()]
     PID = PIDs[0]
 
     active_window = subprocess.check_output(["xdotool", "getactivewindow"]).decode("utf-8").strip()
