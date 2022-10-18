@@ -99,6 +99,7 @@ else
 fi
 
 kratos_app_dir="${kratos_source_dir}/applications"
+local_app_dir="${source_dir}/applications"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Collect and set applications to compile
@@ -106,7 +107,14 @@ if [ -f "${app_file_path}" ]; then
     export KRATOS_APPLICATIONS=
     app_names=($(cat ${app_file_path}))
     for app_name in "${app_names[@]}"; do
-        add_application ${kratos_app_dir}/${app_name}
+        if [ -d "${kratos_app_dir}/${app_name}" ]; then
+            add_application "${kratos_app_dir}/${app_name}"
+        elif [ -d "${local_app_dir}/${app_name}" ]; then
+            add_application "${local_app_dir}/${app_name}"
+        else
+            echo "App not found: ${app_name}"
+            exit 1
+        fi
     done
 else
     echo "App list file not found: ${app_file_path}"
