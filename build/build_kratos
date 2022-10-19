@@ -5,9 +5,10 @@
 print_help() {
     echo "Build and install KratosMultiphysics."
     echo "Usage: build [OPTIONS]"
-    echo "[-h|C|t|c|o|a]"
+    echo "[-h|C|b|t:|c:|o:|a:|]"
     echo "h     print this help and exit"
     echo "C     clean build and install directories, then exit"
+    echo "b     include the branch name in the build directory (accelerate compilation when switching back and forth between branches)"
     echo "t     build type [FullDebug, Debug, Release] (Default: FullDebug)"
     echo "c     compiler [gcc, clang] (Default: gcc)"
     echo "o     additional compile options (Default: no additional compile options)"
@@ -21,10 +22,11 @@ build_type="FullDebug"
 compiler_family="gcc"
 compile_opts=""
 clean=0
+include_branch_name=0
 app_file_path="${script_dir}/kratos_default_apps.txt"
 
 # Parse CL arguments
-while getopts ":hC|t:c:o:a:" arg; do
+while getopts "hCbt:c:o:a:" arg; do
     case $arg in
         h)  # Print help and exit without doing anything.
             print_help
@@ -32,6 +34,9 @@ while getopts ":hC|t:c:o:a:" arg; do
             ;;
         C)  # Set clean flag
             clean=1
+            ;;
+        b)  # Include branch name in build directory
+            include_branch_name=1
             ;;
         t)  # Select build type
             build_type="${OPTARG}"
@@ -82,8 +87,19 @@ build_dir="$(dirname "${script_dir}")/build"
 install_dir=$(get_site_packages_dir)
 
 kratos_source_dir="${source_dir}/external/kratos"
-kratos_build_dir="${build_dir}/kratos/${build_type}_${CC}"
+
+if [ $include_branch_name -ne 0 ]; then
+    current_dir=$(pwd)
+    cd "${kratos_source_dir}"
+    branch_name=$(git rev-parse --abbrev-ref HEAD)
+    cd "${current_dir}"
+    kratos_build_dir="${build_dir}/kratos/${branch_name}/${CC}/${build_type}"
+else
+    kratos_build_dir="${build_dir}/kratos/${CC}/${build_type}"
+fi
+
 kratos_app_dir="${kratos_source_dir}/applications"
+local_app_dir="${source_dir}/applications"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Collect and set applications to compile
@@ -91,7 +107,14 @@ if [ -f "${app_file_path}" ]; then
     export KRATOS_APPLICATIONS=
     app_names=($(cat ${app_file_path}))
     for app_name in "${app_names[@]}"; do
-        add_application ${kratos_app_dir}/${app_name}
+        if [ -d "${kratos_app_dir}/${app_name}" ]; then
+            add_application "${kratos_app_dir}/${app_name}"
+        elif [ -d "${local_app_dir}/${app_name}" ]; then
+            add_application "${local_app_dir}/${app_name}"
+        else
+            echo "App not found: ${app_name}"
+            exit 1
+        fi
     done
 else
     echo "App list file not found: ${app_file_path}"
