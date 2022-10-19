@@ -102,7 +102,7 @@ fi
 if [ $clean -eq 1 ]; then
     kratos_module_dir=$(get_site_packages_dir)/KratosMultiphysics
     [ -d "${kratos_module_dir}" ] && rm -rf "${kratos_module_dir}"
-    [ -d "${build_dir}" ] && rm -rf "${build_dir}"
+    [ -d "${kratos_build_dir}" ] && rm -rf "${build_dir}"
     exit 0
 fi
 
@@ -118,7 +118,7 @@ unbuffer cmake                                          \
         -DCMAKE_BUILD_TYPE=${build_type}                \
         -DCMAKE_CXX_COMPILER_LAUNCHER=ccache            \
         -DCMAKE_INSTALL_PREFIX="$install_dir"           \
-        -DCMAKE_CXX_FLAGS=${compile_opts}               \
+        -DCMAKE_CXX_FLAGS:STRING="${compile_opts}"      \
         -DUSE_MPI=ON                                    \
         -DUSE_EIGEN_MKL=OFF                             \
         -DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON          \
