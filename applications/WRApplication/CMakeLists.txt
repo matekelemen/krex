@@ -33,7 +33,6 @@ endif()
 
 include(pybind11Tools)
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts" KratosMultiphysics/${application_name})
-kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${CMAKE_CURRENT_SOURCE_DIR}/${application_name}.py" "KratosMultiphysics/${application_name}/__init__.py" )
 
 if (${INSTALL_TESTING_FILES} MATCHES ON)
     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION applications/${application_name}
