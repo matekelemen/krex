@@ -125,7 +125,7 @@ fi
 if [ $clean -eq 1 ]; then
     kratos_module_dir=$(get_site_packages_dir)/KratosMultiphysics
     [ -d "${kratos_module_dir}" ] && rm -rf "${kratos_module_dir}"
-    [ -d "${kratos_build_dir}" ] && rm -rf "${build_dir}"
+    [ -d "${kratos_build_dir}" ] && rm -rf "${kratos_build_dir}"
     exit 0
 fi
 
