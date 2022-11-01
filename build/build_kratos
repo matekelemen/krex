@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#set -e
+set -e
 
 print_help() {
     echo "Build and install KratosMultiphysics."
@@ -15,6 +15,10 @@ print_help() {
     echo "a     path to a file containing applications' names to be compiled (Default: <this_dir>/kratos_default_apps.txt)"
 }
 
+get_site_packages_dir() {
+    echo $(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+}
+
 # Set default arguments
 script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
@@ -24,6 +28,43 @@ compile_opts=""
 clean=0
 include_branch_name=0
 app_file_path="${script_dir}/kratos_default_apps.txt"
+
+# Set variables
+source_dir="$(dirname "${script_dir}")"
+build_dir="$(dirname "${script_dir}")/build"
+install_dir=$(get_site_packages_dir)
+kratos_source_dir="${source_dir}/external/kratos"
+kratos_app_dir="${kratos_source_dir}/applications"
+local_app_dir="${source_dir}/applications"
+
+# Function definitions
+export KRATOS_APPLICATIONS=
+
+add_application () {
+    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+}
+
+add_apps_from_list () {
+    # Collect and set applications to compile
+    if [ -f "$1" ]; then
+        app_names=($(cat $1))
+        for app_name in "${app_names[@]}"; do
+            if [ -d "${kratos_app_dir}/${app_name}" ]; then
+                add_application "${kratos_app_dir}/${app_name}"
+            elif [ -d "${local_app_dir}/${app_name}" ]; then
+                add_application "${local_app_dir}/${app_name}"
+            else
+                echo "App not found: ${app_name}"
+                echo "${kratos_app_dir}/${app_name}"
+                echo
+                exit 1
+            fi
+        done
+    else
+        echo "App list file not found: $1"
+        exit 1
+    fi
+}
 
 # Parse CL arguments
 while getopts "hCbt:c:o:a:" arg; do
@@ -49,22 +90,13 @@ while getopts "hCbt:c:o:a:" arg; do
             compile_opts="${OPTARG}"
             ;;
         a)  # Set path to a file containing a list of applications' names to be compiled
-            app_file_path="${OPTARG}"
+            add_apps_from_list "${OPTARG}"
             ;;
         \?) # Invalid argument
             echo "Unsupported argument: ${OPTARG}"
             exit 1
     esac
 done
-
-# Function definitions
-add_application () {
-    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
-}
-
-get_site_packages_dir() {
-    echo $(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
-}
 
 # Set basic configuration
 python_executable=$(which python3)
@@ -81,13 +113,6 @@ else
     exit 1
 fi
 
-# Set variables
-source_dir="$(dirname "${script_dir}")"
-build_dir="$(dirname "${script_dir}")/build"
-install_dir=$(get_site_packages_dir)
-
-kratos_source_dir="${source_dir}/external/kratos"
-
 if [ $include_branch_name -ne 0 ]; then
     current_dir=$(pwd)
     cd "${kratos_source_dir}"
@@ -98,28 +123,7 @@ else
     kratos_build_dir="${build_dir}/kratos/${CC}/${build_type}"
 fi
 
-kratos_app_dir="${kratos_source_dir}/applications"
-local_app_dir="${source_dir}/applications"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
-
-# Collect and set applications to compile
-if [ -f "${app_file_path}" ]; then
-    export KRATOS_APPLICATIONS=
-    app_names=($(cat ${app_file_path}))
-    for app_name in "${app_names[@]}"; do
-        if [ -d "${kratos_app_dir}/${app_name}" ]; then
-            add_application "${kratos_app_dir}/${app_name}"
-        elif [ -d "${local_app_dir}/${app_name}" ]; then
-            add_application "${local_app_dir}/${app_name}"
-        else
-            echo "App not found: ${app_name}"
-            exit 1
-        fi
-    done
-else
-    echo "App list file not found: ${app_file_path}"
-    exit 1
-fi
 
 # Clean
 if [ $clean -eq 1 ]; then
