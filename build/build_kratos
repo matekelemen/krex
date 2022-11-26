@@ -81,7 +81,7 @@ while getopts "hCbt:c:o:a:" arg; do
             ;;
         t)  # Select build type
             build_type="${OPTARG}"
-            (("${build_type}" == "FullDebug" || "${build_type}" == "Debug" || "${build_type}" == "Release")) || (print_help && echo "Invalid build type: ${build_type}" && exit 1)
+            (("${build_type}" == "FullDebug" || "${build_type}" == "Debug" || "${build_type}" == "RelWithDebInfo" || "${build_type}" == "Release")) || (print_help && echo "Invalid build type: ${build_type}" && exit 1)
             ;;
         c)  # Select compilers
             compiler_family="${OPTARG}"
