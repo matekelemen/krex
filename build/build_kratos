@@ -5,13 +5,14 @@ set -e
 print_help() {
     echo "Build and install KratosMultiphysics."
     echo "Usage: build [OPTIONS]"
-    echo "[-h|C|b|t:|c:|o:|a:|]"
+    echo "[-h|C|b|t:|c:|o:|l:|a:|]"
     echo "h     print this help and exit"
     echo "C     clean build and install directories, then exit"
     echo "b     include the branch name in the build directory (accelerate compilation when switching back and forth between branches)"
     echo "t     build type [FullDebug, Debug, Release] (Default: FullDebug)"
     echo "c     compiler [gcc, clang] (Default: gcc)"
     echo "o     additional compile options (Default: no additional compile options)"
+    echo "l     additional link options (Default: no additional link options)"
     echo "a     path to a file containing applications' names to be compiled (Default: <this_dir>/kratos_default_apps.txt)"
 }
 
@@ -25,6 +26,7 @@ script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 build_type="FullDebug"
 compiler_family="gcc"
 compile_opts=""
+link_opts=""
 clean=0
 include_branch_name=0
 app_file_path="${script_dir}/kratos_default_apps.txt"
@@ -67,7 +69,7 @@ add_apps_from_list () {
 }
 
 # Parse CL arguments
-while getopts "hCbt:c:o:a:" arg; do
+while getopts "hCbt:c:o:l:a:" arg; do
     case $arg in
         h)  # Print help and exit without doing anything.
             print_help
@@ -89,6 +91,9 @@ while getopts "hCbt:c:o:a:" arg; do
         o)  # Set compiler options
             compile_opts="${OPTARG}"
             ;;
+        l)  # Set linker options
+            link_opts="${OPTARG}"
+            ;;
         a)  # Set path to a file containing a list of applications' names to be compiled
             add_apps_from_list "${OPTARG}"
             ;;
@@ -97,9 +102,6 @@ while getopts "hCbt:c:o:a:" arg; do
             exit 1
     esac
 done
-
-# Set basic configuration
-python_executable=$(which python3)
 
 if [ "${compiler_family}" == "gcc" ]; then
     CC="gcc"
@@ -139,16 +141,17 @@ export CXX=$(which $CXX)
 
 # Configure
 mkdir -p "$build_dir" "$install_dir" "$kratos_build_dir"
-unbuffer cmake                                          \
-        -H"${source_dir}"                               \
-        -B"${kratos_build_dir}"                         \
-        -DCMAKE_BUILD_TYPE=${build_type}                \
-        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache            \
-        -DCMAKE_INSTALL_PREFIX="$install_dir"           \
-        -DCMAKE_CXX_FLAGS:STRING="${compile_opts}"      \
-        -DUSE_MPI=ON                                    \
-        -DUSE_EIGEN_MKL=OFF                             \
-        -DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON          \
+unbuffer cmake                                              \
+        -H"${source_dir}"                                   \
+        -B"${kratos_build_dir}"                             \
+        -DCMAKE_BUILD_TYPE=${build_type}                    \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache                \
+        -DCMAKE_INSTALL_PREFIX="$install_dir"               \
+        -DCMAKE_CXX_FLAGS:STRING="${compile_opts}"          \
+        -DCMAKE_SHARED_LINKER_FLAGS:STRING="${link_opts}"   \
+        -DUSE_MPI=ON                                        \
+        -DUSE_EIGEN_MKL=OFF                                 \
+        -DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON              \
         | tee ${build_dir}/configure.log
 
 # Build

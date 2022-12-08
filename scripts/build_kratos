@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+
+# --- STD Imports ---
+import os
+import sys
+import shutil
+import pathlib
+import argparse
+import subprocess
+import sysconfig
+import multiprocessing
+
+
+def isCommandAvailable(command: str) -> bool:
+    return bool(subprocess.check_output(f"command -v {command}", shell = True))
+
+
+def which(command: str) -> str:
+    return shutil.which(command)
+
+
+def makeArgumentParser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        pathlib.Path(__file__).stem
+    )
+
+    parser.add_argument("-s",
+                        "--source-dir",
+                        dest = "sourceDirectory",
+                        type = pathlib.Path,
+                        default = pathlib.Path(os.getcwd()),
+                        help = "Path to the Kratos source directory")
+
+    parser.add_argument("-b",
+                        "--build-dir",
+                        dest = "buildDirectory",
+                        type = pathlib.Path,
+                        default = pathlib.Path(__file__).absolute().parent / "kratos" / "build",
+                        help = "Path to the directory to build KratosMultiphysics in.")
+
+    parser.add_argument("-i",
+                        "--install-dir",
+                        dest = "installDirectory",
+                        type = pathlib.Path,
+                        default = pathlib.Path(sysconfig.get_paths()["purelib"]),
+                        help = "Path to directory to install KratosMultiphysics to.")
+
+    parser.add_argument("--app-dirs",
+                        dest = "applicationDirectories",
+                        type = pathlib.Path,
+                        default = [],
+                        nargs = "*",
+                        help = "Directories to search Kratos applications for.")
+
+    parser.add_argument("-t",
+                        "--build-type",
+                        dest = "buildType",
+                        type = str,
+                        choices = ["FullDebug", "Debug", "Release", "RelWithDebInfo"],
+                        default = "Release",
+                        help = "Set build type (defined by CMake).")
+
+    parser.add_argument("-c",
+                        "--compiler",
+                        dest = "compiler",
+                        type = str,
+                        choices = ["gcc", "g++", "clang", "clang++", "icc", "i++"],
+                        default = "gcc",
+                        help = "Set the compiler to use.")
+
+    parser.add_argument("-o",
+                        "--compile-opts",
+                        dest = "compileOptions",
+                        type = str,
+                        nargs = "*",
+                        default = [],
+                        help = "Additional flags/arguments passed on to the compiler atop the ones CMake defines.")
+
+    parser.add_argument("-a",
+                        "--applications",
+                        dest = "applications",
+                        type = str,
+                        nargs = "*",
+                        default = [],
+                        help = "Kratos applications to compile.")
+
+    parser.add_argument("--install",
+                        dest = "install",
+                        action = "store_const",
+                        default = False,
+                        const = True,
+                        help = "Install after compiling")
+
+    parser.add_argument("-C",
+                        "--clean",
+                        dest = "clean",
+                        action = "store_const",
+                        default = False,
+                        const = True,
+                        help = "Remove build and install files/directories.")
+
+    parser.add_argument("--enable-mpi",
+                        dest = "enableMPI",
+                        action = "store_const",
+                        default = False,
+                        const = True,
+                        help = "Compile with MPI support.")
+
+    parser.add_argument("--enable-mkl",
+                        dest = "enableMKL",
+                        action = "store_const",
+                        default = False,
+                        const = True,
+                        help = "Compile with intel MKL support")
+
+    return parser
+
+
+def forkCommandOutput(command: "list[str]", outputFilePath: pathlib.Path) -> None:
+    if isCommandAvailable("unbuffer") and isCommandAvailable("tee"):
+        command.insert(0, "unbuffer")
+        command += ["|", "tee", str(outputFilePath)]
+
+
+def setCompiler(cmakeCommand: "list[str]", compiler, cCompiler: str, cxxCompiler: str):
+    """Can throw a fatal error"""
+    if not isCommandAvailable(cxxCompiler):
+        raise RuntimeError(f"Selected compiler {compiler} is not available")
+    cmakeCommand.append(f"-DCMAKE_C_COMPILER:STRING={which(cCompiler)}")
+    cmakeCommand.append(f"-DCMAKE_CXX_COMPILER:STRING={which(cxxCompiler)}")
+
+
+def getBuildSystem(arguments: argparse.Namespace) -> str:
+    for buildSystem, name in (("ninja", "Ninja"), ("make", "Unix Makefiles")):
+        if isCommandAvailable(buildSystem):
+            return name
+    raise RuntimeError("No supported build system is available")
+
+
+def generateCMakeCommand(arguments: argparse.Namespace) -> str:
+    # Build CMake command
+    cmakeCommand = ["cmake"]
+
+    # Create/check and set directories
+    if not arguments.sourceDirectory.is_dir():
+        raise RuntimeError(f"Source directory not found: {arguments.sourceDirectory}")
+    cmakeCommand.append(f"-H{arguments.sourceDirectory}")
+
+    arguments.buildDirectory.mkdir(exist_ok = True, parents = True)
+    cmakeCommand.append(f"-B{arguments.buildDirectory}")
+
+    if arguments.install:
+        arguments.installDirectory.mkdir(exist_ok = True, parents = True)
+        cmakeCommand.append(f"-DCMAKE_INSTALL_PREFIX:STRING={arguments.installDirectory}")
+
+    # Set the compiler and its options
+    if arguments.compiler in ("gcc", "g++"):
+        setCompiler(cmakeCommand, arguments.compiler, "gcc", "g++")
+    elif arguments.compiler in ("clang", "clang++"):
+        setCompiler(cmakeCommand, arguments.compiler, "clang", "clang++")
+    elif arguments.compiler in ("icc", "i++"):
+        setCompiler(cmakeCommand, arguments.compiler, "icc", "i++")
+    else:
+        raise RuntimeError(f"Unsupported compiler: {arguments.compiler}")
+
+    if arguments.compileOptions:
+        print(f"'{arguments.compileOptions}'")
+        cmakeCommand.append(f"-DCMAKE_CXX_FLAGS:STRING=\"{' '.join(arguments.compileOptions)}\"")
+
+    cmakeCommand.append(f"-DCMAKE_BUILD_TYPE:STRING={arguments.buildType}")
+
+    if isCommandAvailable("ccache"):
+        cmakeCommand.append(f"-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=ccache")
+    else:
+        print("ccache is not available! I highly recommend you get it to reduce repeated build times.")
+
+    # Set applications to build (terrible kratos interface through env variables)
+    if arguments.applications:
+        arguments.applicationDirectories.insert(0, arguments.sourceDirectory / "applications")
+        applicationList = []
+        for applicationName in arguments.applications:
+            applicationPath = None
+            for applicationDirectory in arguments.applicationDirectories:
+                candidate = applicationDirectory / applicationName
+                if candidate.is_dir():
+                    applicationPath = candidate.absolute()
+                    break
+            if applicationPath:
+                applicationList.append(applicationPath)
+            else:
+                raise RuntimeError(f"{applicationName} was not found in any of the following directories: {arguments.applicationDirectories}")
+        os.environ["KRATOS_APPLICATIONS"] = ";".join([str(app) for app in applicationList])
+
+    # Install python with symlinks instead of copying
+    os.environ["KRATOS_INSTALL_PYTHON_USING_LINKS"] = "ON"
+
+    # Other options
+    cmakeCommand.append(f"-DUSE_MPI:BOOL={'ON' if arguments.enableMPI else 'OFF'}")
+    cmakeCommand.append(f"-DUSE_EIGEN_MKL:BOOL={'ON' if arguments.enableMKL else 'OFF'}")
+
+    # Build system
+    cmakeCommand.append(f"-G{getBuildSystem(arguments)}")
+
+    # Duplicate stdout and pipe it to a file
+    forkCommandOutput(cmakeCommand, arguments.buildDirectory / "configure.log")
+
+    return cmakeCommand
+
+
+def main(argv: "list[str]") -> int:
+    # Parse CL arguments
+    parser = makeArgumentParser()
+    arguments = parser.parse_args(argv)
+    print(arguments.compileOptions)
+
+    # Clean if requested
+    if arguments.clean:
+        directoriesToRemove = [arguments.buildDirectory]
+        if arguments.install:
+            directoriesToRemove.append(arguments.installDirectory / "KratosMultiphysics")
+        for directory in directoriesToRemove:
+            if directory.is_dir():
+                shutil.rmtree(str(directory))
+
+    # Generate the CMake configuration command
+    try:
+        cmakeCommand = generateCMakeCommand(arguments)
+    except Exception as exception:
+        raise SystemExit(exception)
+
+    # ... and run it
+    if subprocess.call(cmakeCommand):
+        return 1
+
+    # Build
+    processors = max([multiprocessing.cpu_count() - 1,1])
+    if subprocess.call(["cmake",
+                        "--build",
+                        str(arguments.buildDirectory),
+                        "-j",
+                        str(processors)]):
+        return 1
+
+    # Install
+    if subprocess.call(["cmake", "--install", str(arguments.buildDirectory)]):
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main(sys.argv[1:]))
