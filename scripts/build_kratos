@@ -113,6 +113,13 @@ def makeArgumentParser() -> argparse.ArgumentParser:
                         const = True,
                         help = "Compile with intel MKL support")
 
+    parser.add_argument("--enable-profiling",
+                        dest = "enableProfiling",
+                        action = "store_const",
+                        default = False,
+                        const = True,
+                        help = "Enable profiling macros")
+
     return parser
 
 
@@ -163,11 +170,12 @@ def generateCMakeCommand(arguments: argparse.Namespace) -> str:
     else:
         raise RuntimeError(f"Unsupported compiler: {arguments.compiler}")
 
+    #arguments.compileOptions.append("-fdiagnostics-color=always")
     if arguments.compileOptions:
-        print(f"'{arguments.compileOptions}'")
         cmakeCommand.append(f"-DCMAKE_CXX_FLAGS:STRING=\"{' '.join(arguments.compileOptions)}\"")
 
     cmakeCommand.append(f"-DCMAKE_BUILD_TYPE:STRING={arguments.buildType}")
+    cmakeCommand.append("-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON")
 
     if isCommandAvailable("ccache"):
         cmakeCommand.append(f"-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=ccache")
@@ -194,9 +202,15 @@ def generateCMakeCommand(arguments: argparse.Namespace) -> str:
     # Install python with symlinks instead of copying
     os.environ["KRATOS_INSTALL_PYTHON_USING_LINKS"] = "ON"
 
+    # Generate python stubs to help the language server
+    cmakeCommand.append("-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON")
+
     # Other options
     cmakeCommand.append(f"-DUSE_MPI:BOOL={'ON' if arguments.enableMPI else 'OFF'}")
     cmakeCommand.append(f"-DUSE_EIGEN_MKL:BOOL={'ON' if arguments.enableMKL else 'OFF'}")
+
+    if arguments.enableProfiling:
+        cmakeCommand.append(f"-DKRATOS_ENABLE_PROFILING:BOOL=ON")
 
     # Build system
     cmakeCommand.append(f"-G{getBuildSystem(arguments)}")

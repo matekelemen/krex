@@ -5,15 +5,14 @@ set -e
 print_help() {
     echo "Build and install KratosMultiphysics."
     echo "Usage: build [OPTIONS]"
-    echo "[-h|C|b|t:|c:|o:|l:|a:|]"
+    echo "[-h|C|b|t:|c:|o:|a:|]"
     echo "h     print this help and exit"
     echo "C     clean build and install directories, then exit"
     echo "b     include the branch name in the build directory (accelerate compilation when switching back and forth between branches)"
     echo "t     build type [FullDebug, Debug, Release] (Default: FullDebug)"
     echo "c     compiler [gcc, clang] (Default: gcc)"
     echo "o     additional compile options (Default: no additional compile options)"
-    echo "l     additional link options (Default: no additional link options)"
-    echo "a     path to a file containing applications' names to be compiled (Default: <this_dir>/kratos_default_apps.txt)"
+    echo "a     path to a file containing applications' names to be compiled"
 }
 
 get_site_packages_dir() {
@@ -30,38 +29,19 @@ link_opts=""
 clean=0
 include_branch_name=0
 app_file_path="${script_dir}/kratos_default_apps.txt"
+app_names=""
 
 # Set variables
 source_dir="$(dirname "${script_dir}")"
 build_dir="$(dirname "${script_dir}")/build"
-install_dir=$(get_site_packages_dir)
+kratos_install_dir=$(get_site_packages_dir)
 kratos_source_dir="${source_dir}/external/kratos"
-kratos_app_dir="${kratos_source_dir}/applications"
 local_app_dir="${source_dir}/applications"
-
-# Function definitions
-export KRATOS_APPLICATIONS=
-
-add_application () {
-    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
-}
 
 add_apps_from_list () {
     # Collect and set applications to compile
     if [ -f "$1" ]; then
-        app_names=($(cat $1))
-        for app_name in "${app_names[@]}"; do
-            if [ -d "${kratos_app_dir}/${app_name}" ]; then
-                add_application "${kratos_app_dir}/${app_name}"
-            elif [ -d "${local_app_dir}/${app_name}" ]; then
-                add_application "${local_app_dir}/${app_name}"
-            else
-                echo "App not found: ${app_name}"
-                echo "${kratos_app_dir}/${app_name}"
-                echo
-                exit 1
-            fi
-        done
+        app_names="${app_names} $(tr '\n' ' ' < $1)"
     else
         echo "App list file not found: $1"
         exit 1
@@ -69,7 +49,7 @@ add_apps_from_list () {
 }
 
 # Parse CL arguments
-while getopts "hCbt:c:o:l:a:" arg; do
+while getopts "hCbt:c:o:a:" arg; do
     case $arg in
         h)  # Print help and exit without doing anything.
             print_help
@@ -91,9 +71,6 @@ while getopts "hCbt:c:o:l:a:" arg; do
         o)  # Set compiler options
             compile_opts="${OPTARG}"
             ;;
-        l)  # Set linker options
-            link_opts="${OPTARG}"
-            ;;
         a)  # Set path to a file containing a list of applications' names to be compiled
             add_apps_from_list "${OPTARG}"
             ;;
@@ -103,57 +80,38 @@ while getopts "hCbt:c:o:l:a:" arg; do
     esac
 done
 
-if [ "${compiler_family}" == "gcc" ]; then
-    CC="gcc"
-    CXX="g++"
-elif [ "${compiler_family}" == "clang" ]; then
-    CC="clang"
-    CXX="clang++"
-else
-    print_help
-    echo "Unsupported compiler: ${compiler_family}"
-    exit 1
-fi
-
 if [ $include_branch_name -ne 0 ]; then
     current_dir=$(pwd)
     cd "${kratos_source_dir}"
     branch_name=$(git rev-parse --abbrev-ref HEAD)
     cd "${current_dir}"
-    kratos_build_dir="${build_dir}/kratos/${branch_name}/${CC}/${build_type}"
+    kratos_build_dir="${build_dir}/kratos/${branch_name}/${compiler_family}/${build_type}"
 else
-    kratos_build_dir="${build_dir}/kratos/${CC}/${build_type}"
+    kratos_build_dir="${build_dir}/kratos/${compiler_family}/${build_type}"
 fi
 
-export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
-
-# Clean
 if [ $clean -eq 1 ]; then
-    kratos_module_dir=$(get_site_packages_dir)/KratosMultiphysics
-    [ -d "${kratos_module_dir}" ] && rm -rf "${kratos_module_dir}"
-    [ -d "${kratos_build_dir}" ] && rm -rf "${kratos_build_dir}"
-    exit 0
+    clean="--clean"
+else
+    clean=
 fi
 
-# Set compilers in the environment
-export CC=$(which $CC)
-export CXX=$(which $CXX)
+if [ -z "$compile_opts" ]; then
+    compile_opts=""
+else
+    compile_opts="--compile-opts=${compile_opts}"
+fi
 
-# Configure
-mkdir -p "$build_dir" "$install_dir" "$kratos_build_dir"
-unbuffer cmake                                              \
-        -H"${source_dir}"                                   \
-        -B"${kratos_build_dir}"                             \
-        -DCMAKE_BUILD_TYPE=${build_type}                    \
-        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache                \
-        -DCMAKE_INSTALL_PREFIX="$install_dir"               \
-        -DCMAKE_CXX_FLAGS:STRING="${compile_opts}"          \
-        -DCMAKE_SHARED_LINKER_FLAGS:STRING="${link_opts}"   \
-        -DUSE_MPI=ON                                        \
-        -DUSE_EIGEN_MKL=OFF                                 \
-        -DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON              \
-        | tee ${build_dir}/configure.log
-
-# Build
-cd "${kratos_build_dir}"
-unbuffer make install -j$(nproc) | tee compile.log
+python3 "${source_dir}/scripts/build_kratos"    \
+    --applications ${app_names}                 \
+    --source-dir "${kratos_source_dir}"         \
+    --build-dir "${kratos_build_dir}"           \
+    --install-dir "${kratos_install_dir}"       \
+    --app-dirs "${local_app_dir}"               \
+    --build-type "${build_type}"                \
+    --compiler "${compiler_family}"             \
+    ${compile_opts}                             \
+    ${clean}                                    \
+    --enable-profiling                          \
+    --enable-mpi                                \
+    --install
