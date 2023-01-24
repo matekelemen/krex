@@ -1,5 +1,8 @@
-// --- WR Includes ---
+/// @author Máté Kelemen
+
+// --- WRApp Includes ---
 #include "wr_application/WRApp.hpp"
+#include "wr_application/WRApp_variables.hpp"
 
 
 namespace Kratos
@@ -7,7 +10,7 @@ namespace Kratos
 
 
 WRApp::WRApp()
-    : KratosApplication("WindEngineeringApplication")
+    : KratosApplication("WRApp")
 {
 }
 
@@ -15,7 +18,9 @@ WRApp::WRApp()
 void WRApp::Register()
 {
     KRATOS_INFO("") << "Initializing WRApp..." << std::endl;
+
     // Register custom variables
+    KRATOS_REGISTER_VARIABLE(ANALYSIS_PATH)
 }
 
 

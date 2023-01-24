@@ -17,8 +17,8 @@ endif()
 add_library(${application_core_name} SHARED ${application_core_sources} ${application_test_sources})
 target_link_libraries(${application_core_name} PUBLIC KratosCore)
 target_include_directories(${application_core_name} PUBLIC
-                           "${CMAKE_CURRENT_SOURCE_DIR}/include"
                            "${KRATOS_SOURCE_DIR}/kratos"
+                           "${CMAKE_CURRENT_SOURCE_DIR}/include"
                            "${CMAKE_CURRENT_SOURCE_DIR}/packages")
 set_target_properties(${application_core_name} PROPERTIES COMPILE_DEFINITIONS "${PROJECT_NAME}_APPLICATION=EXPORT,API")
 
