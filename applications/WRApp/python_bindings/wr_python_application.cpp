@@ -3,14 +3,16 @@
 // --- External Includes ---
 #include <pybind11/pybind11.h>
 
-// --- Project Includes ---
-#include "includes/define.h"
+// --- Core Includes ---
+#include "includes/define_python.h"
+
+// --- WRApp Includes ---
 #include "wr_application/WRApp.hpp"
-#include "add_custom_utilities_to_python.h"
+#include "wr_application/WRApp_variables.hpp"
+#include "add_custom_utilities_to_python.hpp"
 
 
-namespace Kratos::Python
-{
+namespace Kratos::Python{
 
 
 PYBIND11_MODULE(WRApp, module)
@@ -24,10 +26,11 @@ PYBIND11_MODULE(WRApp, module)
     AddCustomUtilitiesToPython(module);
 
     // Register custom variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(module, ANALYSIS_PATH)
 
 } // PYBIND11_MODULE
 
 
 } // namespace Kratos::Python
 
-#endif // KRATOS_PYTHON
+#endif

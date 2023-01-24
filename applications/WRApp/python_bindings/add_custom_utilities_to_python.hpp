@@ -7,8 +7,7 @@
 #include "includes/define_python.h"
 
 
-namespace Kratos::Python
-{
+namespace Kratos::Python {
 
 
 void AddCustomUtilitiesToPython(pybind11::module& rModule);
