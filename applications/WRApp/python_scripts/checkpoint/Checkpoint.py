@@ -1,8 +1,10 @@
-# Core Imports
+"""@author Máté Kelemen"""
+
+# --- Core Imports ---
 import KratosMultiphysics
 
-# HDF5 imports
-from KratosMultiphysics.HDF5Application.checkpoint.snapshot import Snapshot
+# --- WRApp Imports ---
+from KratosMultiphysics.WRApp.checkpoint.Snapshot import Snapshot
 
 
 class Checkpoint:

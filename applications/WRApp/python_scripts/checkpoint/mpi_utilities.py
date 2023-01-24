@@ -1,9 +1,13 @@
+"""@author Máté Kelemen"""
+
 __all__ = ["MPIUnion"]
 
-# Core imports
+# --- Core Imports ---
 import KratosMultiphysics
-import KratosMultiphysics.HDF5Application as HDF5
+
+# --- WRApp Imports ---
+from KratosMultiphysics import WRApp
 
 
 def MPIUnion(container: set, data_communicator: KratosMultiphysics.DataCommunicator) -> set:
-    return set(HDF5.MPIAllGatherVStrings(list(container), data_communicator))
+    return set(WRApp.MPIAllGatherVStrings(list(container), data_communicator))

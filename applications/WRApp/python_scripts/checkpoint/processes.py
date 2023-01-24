@@ -1,11 +1,15 @@
-# Core imports
+"""@author Máté Kelemen"""
+
+# --- Core Imports ---
 import KratosMultiphysics
 
-# HDF5 imports
+# --- HDF5 Imports ---
 import KratosMultiphysics.HDF5Application
-from KratosMultiphysics.HDF5Application.checkpoint.snapshot import Snapshot
 
-# STD imports
+# --- WRApp Imports ---
+from KratosMultiphysics.WRApp.checkpoint.Snapshot import Snapshot
+
+# --- STD Imports ---
 import abc
 
 

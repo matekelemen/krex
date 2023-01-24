@@ -1,15 +1,19 @@
-# Core imports
+"""@author Máté Kelemen"""
+
+# --- Core Imports ---
 import KratosMultiphysics
 
-# HDF5 imports
-import KratosMultiphysics.HDF5Application as HDF5Application
+# --- HDF5 Imports ---
 from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 import KratosMultiphysics.HDF5Application.core.operations.model_part as Operations
-from KratosMultiphysics.HDF5Application import CheckpointPattern
+
+# --- WRApp Imports ---
+from KratosMultiphysics import WRApp
+from KratosMultiphysics.WRApp import CheckpointPattern
 from .mpi_utilities import MPIUnion
 
-# Core imports
+# --- Core Imports ---
 import abc
 import typing
 
@@ -127,7 +131,7 @@ class SnapshotIOBase(abc.ABC):
         with OpenHDF5File(self.__GetInputParameters(), model_part) as file:
             Operations.ReadProcessInfo(self.__parameters["operation_settings"])(model_part, file)
         step = model_part.ProcessInfo[KratosMultiphysics.STEP]
-        path_id = model_part.ProcessInfo[HDF5Application.ANALYSIS_PATH]
+        path_id = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
         return step, path_id
 
     @property
