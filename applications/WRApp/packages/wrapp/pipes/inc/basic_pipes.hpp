@@ -11,7 +11,8 @@
 #include "utilities/interval_utility.h"
 
 // --- WRApp Includes ---
-#include "wrapp/pipes/inc/pipe.h"
+#include "wrapp/pipes/inc/pipe.hpp"
+#include "wrapp/numeric/inc/IntervalUtility.hpp"
 
 // --- STL Includes ---
 #include <optional>
@@ -142,7 +143,7 @@ public:
     {return mInterval.IsInInterval(Value);}
 
 private:
-    ::Kratos::Detail::IntervalUtility<TValue> mInterval;
+    WRApp::Detail::IntervalUtility<TValue> mInterval;
 }; // class IntervalPredicate
 
 
@@ -180,4 +181,4 @@ private:
 
 
 // Template definitions
-#include "wrapp/pipes/impl/basic_pipes_impl.h"
+#include "wrapp/pipes/impl/basic_pipes_impl.hpp"

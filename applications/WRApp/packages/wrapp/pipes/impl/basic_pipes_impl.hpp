@@ -3,10 +3,9 @@
 #pragma once
 
 // Included from "wrapp/pipes/inc/basic_pipes.h"
-#include "wrapp/pipes/inc/basic_pipes.h" // unnecessary include to get language servers working
-#include "includes/exception.h"
+#include "wrapp/pipes/inc/basic_pipes.hpp" // unnecessary include to get language servers working
 
-// STL includes
+// --- STL Includes ---
 #include <cmath>
 #include <limits>
 

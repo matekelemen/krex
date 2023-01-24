@@ -2,8 +2,8 @@
 
 #pragma once
 
-// --- HDF5 Includes ---
-#include "wrapp/pipes/inc/basic_pipes.h"
+// --- WRApp Includes ---
+#include "wrapp/pipes/inc/basic_pipes.hpp"
 
 // --- Core Includes ---
 #include "includes/smart_pointers.h"
@@ -13,11 +13,11 @@
 #include "utilities/interval_utility.h"
 
 
-namespace Kratos::HDF5 {
+namespace Kratos::WRApp {
 
 
 template <class TPipe>
-class KRATOS_API(HDF5_APPLICATION) PipedModelPredicate : public ModelPredicate, public Pipes::Traits<const Model&, bool>
+class KRATOS_API(WR_APPLICATION) PipedModelPredicate : public ModelPredicate, public Pipes::Traits<const Model&, bool>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PipedModelPredicate);

@@ -2,17 +2,16 @@
 
 #pragma once
 
-// Core includes
+// --- Core Includes ---
 #include "includes/kratos_parameters.h"
 #include "includes/define.h" // KRATOS_TRY, KRATOS_CATCH
 
-// STL includes
+// --- STL Includes ---
 #include <type_traits> // std::true_type, std::false_type
 #include <utility> // std::move
 
 
-namespace Kratos
-{
+namespace Kratos {
 
 /**
  *  @brief Unix-inspired pipes in C++.
@@ -199,4 +198,4 @@ using Pipeline = decltype((... | std::declval<TPipes>()));
 } // namespace Kratos
 
 // Include definitions
-#include "wrapp/pipes/impl/pipe_impl.h"
+#include "wrapp/pipes/impl/pipe_impl.hpp"

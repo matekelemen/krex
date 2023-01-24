@@ -2,13 +2,12 @@
 
 #pragma once
 
-// --- HDF5 Includes ---
-// Included from "custom_utilities/pipe.h"
-#include "wrapp/pipes/inc/pipe.h" // unnecessary include to get language servers working
+// --- WRApp Includes ---
+// Included from "custom_utilities/pipe.hpp"
+#include "wrapp/pipes/inc/pipe.hpp" // unnecessary include to get language servers working
 
 
-namespace Kratos::Pipes
-{
+namespace Kratos::Pipes {
 
 
 /// @brief Operator for calling operator() of the pipe.

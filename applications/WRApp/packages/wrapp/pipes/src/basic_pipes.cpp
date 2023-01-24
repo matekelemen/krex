@@ -1,7 +1,7 @@
 /// @author Máté Kelemen
 
-// Internal includes
-#include "wrapp/pipes/inc/basic_pipes.h"
+// --- WRApp Includes ---
+#include "wrapp/pipes/inc/basic_pipes.hpp"
 
 
 namespace Kratos::Pipes {
