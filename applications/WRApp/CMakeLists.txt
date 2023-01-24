@@ -1,26 +1,29 @@
 project(WR CXX)
 
 set(application_core_name "${PROJECT_NAME}Core")
-set(application_name "${PROJECT_NAME}Application")
+set(application_name "${PROJECT_NAME}App")
 
 # Core library
 file(GLOB_RECURSE application_core_sources
      ${application_name}.cpp
      ${application_name}_variables.cpp
-     custom_utilities/*.cpp
-     custom_processes/*.cpp)
+     packages/*.cpp)
 
 if (${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE application_test_sources tests/*.cpp)
+    file(GLOB_RECURSE application_test_sources
+         packages/*/test/*.cpp)
 endif()
 
 add_library(${application_core_name} SHARED ${application_core_sources} ${application_test_sources})
 target_link_libraries(${application_core_name} PUBLIC KratosCore)
-target_include_directories(${application_core_name} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${KRATOS_SOURCE_DIR}/kratos")
+target_include_directories(${application_core_name} PUBLIC
+                           "${CMAKE_CURRENT_SOURCE_DIR}/include"
+                           "${KRATOS_SOURCE_DIR}/kratos"
+                           "${CMAKE_CURRENT_SOURCE_DIR}/packages")
 set_target_properties(${application_core_name} PROPERTIES COMPILE_DEFINITIONS "${PROJECT_NAME}_APPLICATION=EXPORT,API")
 
 # Python bindings
-file(GLOB_RECURSE application_python_interface_sources custom_python/*.cpp)
+file(GLOB_RECURSE application_python_interface_sources python_bindings/*.cpp)
 pybind11_add_module(${application_name} MODULE THIN_LTO ${application_python_interface_sources})
 target_link_libraries(${application_name} PRIVATE ${application_core_name})
 set_target_properties(${application_name} PROPERTIES PREFIX "")

@@ -12,3 +12,9 @@ target_link_libraries(distance_benchmark PUBLIC
                       KratosCore
                       BenchmarkCore
                       benchmark::benchmark)
+
+add_executable(profiler_benchmark drivers/profiler_benchmark)
+target_link_libraries(profiler_benchmark PUBLIC
+                      KratosCore
+                      BenchmarkCore
+                      benchmark::benchmark)

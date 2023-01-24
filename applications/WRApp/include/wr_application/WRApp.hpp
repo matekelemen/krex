@@ -12,22 +12,22 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(WR_APPLICATION) WRApplication : public KratosApplication {
+class KRATOS_API(WR_APPLICATION) WRApp : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(WRApplication);
+    KRATOS_CLASS_POINTER_DEFINITION(WRApp);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    WRApplication();
+    WRApp();
 
     /// Destructor.
-    ~WRApplication() override {}
+    ~WRApp() override {}
 
     ///@}
     ///@name Operations
@@ -50,13 +50,13 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    WRApplication& operator=(const WRApplication& rOther) = delete;
+    WRApp& operator=(const WRApp& rOther) = delete;
 
-    WRApplication(const WRApplication& rOther) = delete;
+    WRApp(const WRApp& rOther) = delete;
 
     ///@}
 
-}; // class WRApplication
+}; // class WRApp
 
 ///@}
 

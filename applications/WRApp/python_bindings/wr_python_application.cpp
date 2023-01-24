@@ -5,7 +5,7 @@
 
 // --- Project Includes ---
 #include "includes/define.h"
-#include "wr_application/WRApplication.h"
+#include "wr_application/WRApp.hpp"
 #include "add_custom_utilities_to_python.h"
 
 
@@ -13,11 +13,11 @@ namespace Kratos::Python
 {
 
 
-PYBIND11_MODULE(WRApplication, module)
+PYBIND11_MODULE(WRApp, module)
 {
-    pybind11::class_<WRApplication,
-                     WRApplication::Pointer,
-                     KratosApplication>(module, "WRApplication")
+    pybind11::class_<WRApp,
+                     WRApp::Pointer,
+                     KratosApplication>(module, "WRApp")
         .def(pybind11::init<>())
         ;
 

@@ -1,7 +1,7 @@
 from KratosMultiphysics import _ImportApplication
-from WRApplication import *
+from WRApp import *
 
-application = WRApplication()
-application_name = "WRApplication"
+application = WRApp()
+application_name = "WRApp"
 
 _ImportApplication(application, application_name)

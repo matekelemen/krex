@@ -9,7 +9,7 @@ print_help() {
     echo "h     print this help and exit"
     echo "C     clean build and install directories, then exit"
     echo "b     include the branch name in the build directory (accelerate compilation when switching back and forth between branches)"
-    echo "t     build type [FullDebug, Debug, Release] (Default: FullDebug)"
+    echo "t     build type [FullDebug, Debug, Release, RelWithDebInfo] (Default: FullDebug)"
     echo "c     compiler [gcc, clang] (Default: gcc)"
     echo "o     additional compile options (Default: no additional compile options)"
     echo "a     path to a file containing applications' names to be compiled"

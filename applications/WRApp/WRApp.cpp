@@ -1,38 +1,38 @@
 // --- WR Includes ---
-#include "wr_application/WRApplication.h"
+#include "wr_application/WRApp.hpp"
 
 
 namespace Kratos
 {
 
 
-WRApplication::WRApplication()
+WRApp::WRApp()
     : KratosApplication("WindEngineeringApplication")
 {
 }
 
 
-void WRApplication::Register()
+void WRApp::Register()
 {
-    KRATOS_INFO("") << "Initializing WRApplication..." << std::endl;
+    KRATOS_INFO("") << "Initializing WRApp..." << std::endl;
     // Register custom variables
 }
 
 
-std::string WRApplication::Info() const
+std::string WRApp::Info() const
 {
-    return "WRApplication";
+    return "WRApp";
 }
 
 
-void WRApplication::PrintInfo(std::ostream& rStream) const
+void WRApp::PrintInfo(std::ostream& rStream) const
 {
     rStream << this->Info();
     this->PrintData(rStream);
 }
 
 
-void WRApplication::PrintData(std::ostream& rStream) const
+void WRApp::PrintData(std::ostream& rStream) const
 {
     KRATOS_WATCH("in my application");
     KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
