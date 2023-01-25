@@ -39,9 +39,8 @@ void WRApp::PrintInfo(std::ostream& rStream) const
 
 void WRApp::PrintData(std::ostream& rStream) const
 {
-    KRATOS_WATCH("in my application");
-    KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-
+    KRATOS_WATCH("In WRApp:");
+    KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
     rStream << "Variables:" << std::endl;
     KratosComponents<VariableData>().PrintData(rStream);
     rStream << std::endl;

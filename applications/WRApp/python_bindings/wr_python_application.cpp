@@ -9,7 +9,9 @@
 // --- WRApp Includes ---
 #include "wr_application/WRApp.hpp"
 #include "wr_application/WRApp_variables.hpp"
-#include "add_custom_utilities_to_python.hpp"
+#include "wrapp/io/inc/AddIOToPython.hpp"
+#include "wrapp/utils/inc/AddUtilsToPython.hpp"
+#include "wrapp/multiprocessing/inc/AddMultiprocessingToPython.hpp"
 
 
 namespace Kratos::Python{
@@ -23,7 +25,9 @@ PYBIND11_MODULE(WRApp, module)
         .def(pybind11::init<>())
         ;
 
-    AddCustomUtilitiesToPython(module);
+    AddUtilsToPython(module);
+    AddIOToPython(module);
+    AddMultiprocessingToPython(module);
 
     // Register custom variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(module, ANALYSIS_PATH)

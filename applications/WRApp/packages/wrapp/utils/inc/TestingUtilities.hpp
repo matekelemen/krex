@@ -18,7 +18,7 @@
 namespace Kratos::Testing {
 
 
-struct KRATOS_API(HDF5_APPLICATION) TestingUtilities
+struct KRATOS_API(WR_APPLICATION) TestingUtilities
 {
     /**
      *  Construct a @ref Model and a @ref Journal in python, assign a python function

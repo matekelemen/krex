@@ -28,7 +28,7 @@ class CheckpointProcessBase(KratosMultiphysics.Process):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.parameters = parameters
         self.__model_part = model.GetModelPart(parameters["model_part_name"])
-        self.__snapshot_type = ImportUtility(parameters["checkpoint_settings"]["snapshot_settings"])()
+        self.__snapshot_type = KratosMultiphysics.Registry[parameters["checkpoint_settings"]["snapshot_settings"].GetString()]
         self.__condition = ImportUtility(parameters["checkpoint_settings"]["io_condition"])()
 
     @property
@@ -57,12 +57,12 @@ class CheckpointProcessBase(KratosMultiphysics.Process):
             "checkpoint_settings" : {
                 "prefix" : "",
                 "io_condition" : {
-                    "import_module" : "KratosMultiphysics.HDF5Application.checkpoint",
+                    "import_module" : "KratosMultiphysics.WRApp.Checkpoint",
                     "import_name" : "ConstantCondition",
                     "value" : true
                 },
                 "snapshot_settings" : {
-                    "import_module" : "KratosMultiphysics.HDF5Application.checkpoint",
+                    "import_module" : "KratosMultiphysics.WRApp.Checkpoint",
                     "import_name" : "SnapshotOnDisk",
                     "file_settings" : {
                         "file_name" : "checkpoints/<model_part_name>_snapshot_<path_id>_<step>.h5",

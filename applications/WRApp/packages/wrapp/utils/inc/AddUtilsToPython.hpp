@@ -10,7 +10,7 @@
 namespace Kratos::Python {
 
 
-void AddCustomUtilitiesToPython(pybind11::module& rModule);
+void AddUtilsToPython(pybind11::module& rModule);
 
 
 } // namespace Kratos::Python

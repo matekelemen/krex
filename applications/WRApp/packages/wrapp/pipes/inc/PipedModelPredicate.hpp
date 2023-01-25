@@ -146,4 +146,4 @@ using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
 >>;
 
 
-} // namespace Kratos::HDF5
+} // namespace Kratos::WRApp

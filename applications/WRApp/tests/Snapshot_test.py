@@ -8,7 +8,7 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApp as WRApp
-import KratosMultiphysics.WRApp.checkpoint.snapshot as Snapshots
+import KratosMultiphysics.WRApp.checkpoint.Snapshot as Snapshots
 
 # --- STD Imports ---
 import pathlib

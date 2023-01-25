@@ -289,11 +289,12 @@ public:
     std::string Apply(const ModelPart& rModelPart) const;
 
     /** @brief Collect all file/directory paths that match the pattern.
-     *
+     *  @tparam TOutputIterator: output iterator with value type constructible from @ref PathType.
      *  @note the search begins from the filesystem root if the pattern is an absolute path,
      *        otherwise it begins from @c cwd.
      */
-    std::vector<PathType> Glob() const;
+    template <class TOutputIterator>
+    void Glob(TOutputIterator it) const;
 
     ///@}
 
@@ -396,3 +397,5 @@ private:
 
 
 } // namespace Kratos
+
+#include "wrapp/utils/impl/PatternUtility_impl.hpp"
