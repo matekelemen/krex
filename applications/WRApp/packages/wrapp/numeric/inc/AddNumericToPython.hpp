@@ -12,7 +12,7 @@
 namespace Kratos::Python {
 
 
-void AddUtilsToPython(pybind11::module& rModule);
+void AddNumericToPython(pybind11::module& rModule);
 
 
 } // namespace Kratos::Python
