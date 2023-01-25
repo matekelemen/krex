@@ -4,6 +4,9 @@
 import KratosMultiphysics
 from KratosMultiphysics import KratosUnittest
 
+# --- WRApp Imports ---
+from KratosMultiphysics import WRApp
+
 # --- STD Imports ---
 import platform
 
@@ -22,7 +25,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
         return 25
 
     def CheckRange(self,
-                   interval: KratosMultiphysics.IntervalUtility,
+                   interval: WRApp.IntervalUtility,
                    begin: float,
                    end: float,
                    check_boundaries = True,
@@ -61,7 +64,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
     def max(self) -> float:
         return 1e300
 
-    def CheckDefaultRange(self, interval: KratosMultiphysics.IntervalUtility) -> None:
+    def CheckDefaultRange(self, interval: WRApp.IntervalUtility) -> None:
         """Same as CheckRange but ranges below and above the interval are not checked (not representable)."""
 
         # Check lower boundary
@@ -76,12 +79,12 @@ class TestIntervalUtility(KratosUnittest.TestCase):
 
     def test_ConstructFromDefaultParameters(self) -> None:
         # Default constructor
-        interval = KratosMultiphysics.IntervalUtility()
+        interval = WRApp.IntervalUtility()
         self.CheckDefaultRange(interval)
 
         # Empty Parameters
         parameters = KratosMultiphysics.Parameters()
-        interval = KratosMultiphysics.IntervalUtility(parameters)
+        interval = WRApp.IntervalUtility(parameters)
         self.CheckDefaultRange(interval)
 
         # Parameters with irrelevant members
@@ -89,7 +92,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
             "irrelevant" : "setting",
             "useless_array" : [-1,"Begin"]
         }""")
-        interval = KratosMultiphysics.IntervalUtility(parameters)
+        interval = WRApp.IntervalUtility(parameters)
         self.CheckDefaultRange(interval)
 
     def test_ExactlyRepresentableBoundaries(self) -> None:
@@ -98,7 +101,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append(end)
-            self.CheckRange(KratosMultiphysics.IntervalUtility(parameters), begin, end)
+            self.CheckRange(WRApp.IntervalUtility(parameters), begin, end)
 
     def test_NotRepresentableBoundaries(self) -> None:
         for begin, end in ((0.3, 2.0), (0.25, 0.3), (1.0/3.0, 0.7)):
@@ -106,7 +109,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append(end)
-            self.CheckRange(KratosMultiphysics.IntervalUtility(parameters), begin, end)
+            self.CheckRange(WRApp.IntervalUtility(parameters), begin, end)
 
     def test_StringBoundaries(self) -> None:
         # Check begin
@@ -115,7 +118,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append("Begin")
             parameters["interval"].Append(end)
-            interval = KratosMultiphysics.IntervalUtility(parameters)
+            interval = WRApp.IntervalUtility(parameters)
             self.CheckRange(interval, self.min, end, check_boundaries=False, check_below=False)
 
         # Check end
@@ -124,12 +127,12 @@ class TestIntervalUtility(KratosUnittest.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append("End")
-            interval = KratosMultiphysics.IntervalUtility(parameters)
+            interval = WRApp.IntervalUtility(parameters)
             self.CheckRange(interval, begin, self.max, check_boundaries=False, check_above=False)
 
         # Check begin & end
         parameters = KratosMultiphysics.Parameters("""{"interval" : ["Begin", "End"]}""")
-        self.CheckDefaultRange(KratosMultiphysics.IntervalUtility(parameters))
+        self.CheckDefaultRange(WRApp.IntervalUtility(parameters))
 
     def test_DegenerateInterval(self) -> None:
         for value in (-1e10, 0.0, 1e10):
@@ -137,7 +140,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(value)
             parameters["interval"].Append(value)
-            self.assertTrue(KratosMultiphysics.IntervalUtility(parameters).IsInInterval(value))
+            self.assertTrue(WRApp.IntervalUtility(parameters).IsInInterval(value))
 
     def test_InvalidParameters(self) -> None:
         invalid_parameters = [KratosMultiphysics.Parameters('{"interval":' + value + '}') for value in [
@@ -159,7 +162,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
         for parameters in invalid_parameters:
             self.assertRaises(
                 Exception,
-                KratosMultiphysics.IntervalUtility,
+                WRApp.IntervalUtility,
                 parameters,
                 msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
 
@@ -178,7 +181,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
         return out
 
     def CheckRange(self,
-                   interval: KratosMultiphysics.DiscreteIntervalUtility,
+                   interval: WRApp.DiscreteIntervalUtility,
                    begin: int,
                    end: int,
                    check_boundaries = True,
@@ -220,7 +223,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
     def min(self) -> int:
         return -(self.max - 1)
 
-    def CheckDefaultRange(self, interval: KratosMultiphysics.DiscreteIntervalUtility) -> None:
+    def CheckDefaultRange(self, interval: WRApp.DiscreteIntervalUtility) -> None:
         """Same as CheckRange but ranges below and above the interval are not checked (not representable)."""
 
         # Check lower boundary
@@ -235,12 +238,12 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
 
     def test_ConstructFromDefaultParameters(self) -> None:
         # Default constructor
-        interval = KratosMultiphysics.DiscreteIntervalUtility()
+        interval = WRApp.DiscreteIntervalUtility()
         self.CheckDefaultRange(interval)
 
         # Empty Parameters
         parameters = KratosMultiphysics.Parameters()
-        interval = KratosMultiphysics.DiscreteIntervalUtility(parameters)
+        interval = WRApp.DiscreteIntervalUtility(parameters)
         self.CheckDefaultRange(interval)
 
         # Parameters with irrelevant members
@@ -248,7 +251,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
             "irrelevant" : "setting",
             "useless_array" : [-1,"Begin"]
         }""")
-        interval = KratosMultiphysics.DiscreteIntervalUtility(parameters)
+        interval = WRApp.DiscreteIntervalUtility(parameters)
         self.CheckDefaultRange(interval)
 
     def test_NumericBoundaries(self) -> None:
@@ -257,7 +260,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append(end)
-            self.CheckRange(KratosMultiphysics.DiscreteIntervalUtility(parameters), begin, end)
+            self.CheckRange(WRApp.DiscreteIntervalUtility(parameters), begin, end)
 
     def test_StringBoundaries(self) -> None:
         # Begin and end checks cannot be performed correctly in pyhton,
@@ -271,7 +274,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
             parameters["interval"].Append("Begin")
             parameters["interval"].Append(end)
             try:
-                interval = KratosMultiphysics.DiscreteIntervalUtility(parameters)
+                interval = WRApp.DiscreteIntervalUtility(parameters)
             except Exception as exception:
                 print(end, parameters)
                 raise exception
@@ -283,12 +286,12 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append("End")
-            interval = KratosMultiphysics.DiscreteIntervalUtility(parameters)
+            interval = WRApp.DiscreteIntervalUtility(parameters)
             self.CheckRange(interval, begin, self.max, check_boundaries=False, check_above=False)
 
         # Check begin & end
         parameters = KratosMultiphysics.Parameters("""{"interval" : ["Begin", "End"]}""")
-        self.CheckDefaultRange(KratosMultiphysics.DiscreteIntervalUtility(parameters))
+        self.CheckDefaultRange(WRApp.DiscreteIntervalUtility(parameters))
 
     def test_DegenerateInterval(self) -> None:
         for value in (-123456, 0, 123456):
@@ -296,7 +299,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(value)
             parameters["interval"].Append(value)
-            self.assertTrue(KratosMultiphysics.DiscreteIntervalUtility(parameters).IsInInterval(value))
+            self.assertTrue(WRApp.DiscreteIntervalUtility(parameters).IsInInterval(value))
 
     def test_InvalidParameters(self) -> None:
         invalid_parameters = [KratosMultiphysics.Parameters('{"interval":' + value + '}') for value in [
@@ -318,7 +321,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
         for parameters in invalid_parameters:
             self.assertRaises(
                 Exception,
-                KratosMultiphysics.IntervalUtility,
+                WRApp.IntervalUtility,
                 parameters,
                 msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
 
@@ -327,14 +330,14 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
 
         # Default interval [-inf, inf]
         small = 1e-12
-        interval = KratosMultiphysics.IntervalUtility(settings)
+        interval = WRApp.IntervalUtility(settings)
         self.assertTrue(interval.IsInInterval(0.0))
 
         # Custom interval [25, 1e30]
         small = 1e-12
         settings["interval"][0].SetDouble(25.0)
         settings["interval"][1].SetDouble(1000.0)
-        interval = KratosMultiphysics.IntervalUtility(settings)
+        interval = WRApp.IntervalUtility(settings)
         self.assertTrue(interval.IsInInterval(25.0))
         self.assertFalse(interval.IsInInterval(25.0 - small))
 
@@ -342,7 +345,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
         small = 1e-12
         settings["interval"][0].SetDouble(0.0)
         settings["interval"][1].SetDouble(0.0)
-        interval = KratosMultiphysics.IntervalUtility(settings)
+        interval = WRApp.IntervalUtility(settings)
         self.assertTrue(interval.IsInInterval(0.0))
         self.assertFalse(interval.IsInInterval(small))
         self.assertFalse(interval.IsInInterval(-small))
@@ -351,7 +354,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
         small = 1e-10       # far from 0, bigger threshold
         settings["interval"][0].SetDouble(1000.0)
         settings["interval"][1].SetDouble(1000.0)
-        interval = KratosMultiphysics.IntervalUtility(settings)
+        interval = WRApp.IntervalUtility(settings)
         self.assertTrue(interval.IsInInterval(1000.0))
         self.assertFalse(interval.IsInInterval(1000.0 - small))
         self.assertFalse(interval.IsInInterval(1000.0 + small))
@@ -360,7 +363,7 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
         small = 1e-10       # bigger interval, higher absolute tolerance
         settings["interval"][0].SetDouble(0.0)
         settings["interval"][1].SetDouble(1000.0)
-        interval = KratosMultiphysics.IntervalUtility(settings)
+        interval = WRApp.IntervalUtility(settings)
         self.assertTrue(interval.IsInInterval(0.0))
         self.assertTrue(interval.IsInInterval(1.0))
         self.assertTrue(interval.IsInInterval(1000.0))
