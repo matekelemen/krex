@@ -11,7 +11,7 @@ import KratosMultiphysics.HDF5Application.core.operations.model_part as Operatio
 # --- WRApp Imports ---
 from KratosMultiphysics import WRApp
 from KratosMultiphysics.WRApp import CheckpointPattern
-from .mpi_utilities import MPIUnion
+from ..mpi_utilities import MPIUnion
 
 # --- Core Imports ---
 import abc

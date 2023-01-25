@@ -121,7 +121,7 @@ class TestSnapshotOnDisk(KratosUnittest.TestCase):
         (self.test_directory / "checkpoints").mkdir(parents = True, exist_ok = True)
 
     def tearDown(self) -> None:
-        #DeleteDirectoryIfExisting(str(self.test_directory))
+        DeleteDirectoryIfExisting(str(self.test_directory))
         KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
     def test_ReadWrite(self) -> None:

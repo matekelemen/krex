@@ -18,7 +18,7 @@ std::vector<std::filesystem::path> Glob (const ModelPartPattern& rInstance) {
 } // namespace
 
 
-void AddCustomUtilitiesToPython(pybind11::module& rModule)
+void AddUtilsToPython(pybind11::module& rModule)
 {
     pybind11::class_<PlaceholderPattern, PlaceholderPattern::Pointer>(rModule, "PlaceholderPattern")
         .def(pybind11::init<const std::string&,const PlaceholderPattern::PlaceholderMap&>())
