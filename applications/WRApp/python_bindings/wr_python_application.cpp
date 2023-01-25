@@ -1,3 +1,5 @@
+/// @author Máté Kelemen
+
 #ifdef KRATOS_PYTHON
 
 // --- External Includes ---

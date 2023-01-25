@@ -16,6 +16,7 @@ from ..mpi_utilities import MPIUnion
 # --- Core Imports ---
 import abc
 import typing
+import pathlib
 
 
 class Snapshot(abc.ABC):
@@ -142,14 +143,14 @@ class SnapshotIOBase(abc.ABC):
     def _ExtractNodalSolutionStepDataNames(model_part: KratosMultiphysics.ModelPart) -> "list[str]":
         data_communicator = model_part.GetCommunicator().GetDataCommunicator()
         local_names = model_part.GetHistoricalVariablesNames()
-        output =  list(MPIUnion(list(local_names), data_communicator))
+        output =  list(MPIUnion(set(local_names), data_communicator))
         return output
 
     @staticmethod
     def _ExtractNodalDataNames(model_part: KratosMultiphysics.ModelPart, check_mesh_consistency: bool = False) -> "list[str]":
         data_communicator = model_part.GetCommunicator().GetDataCommunicator()
         local_names = model_part.GetNonHistoricalVariablesNames(model_part.Nodes, check_mesh_consistency)
-        output =  list(MPIUnion(list(local_names), data_communicator))
+        output =  list(MPIUnion(set(local_names), data_communicator))
         return output
 
     @staticmethod
@@ -160,7 +161,7 @@ class SnapshotIOBase(abc.ABC):
     def _ExtractElementDataNames(model_part: KratosMultiphysics.ModelPart, check_mesh_consistency: bool = False) -> "list[str]":
         data_communicator = model_part.GetCommunicator().GetDataCommunicator()
         local_names = model_part.GetNonHistoricalVariablesNames(model_part.Elements, check_mesh_consistency)
-        output =  list(MPIUnion(list(local_names), data_communicator))
+        output =  list(MPIUnion(set(local_names), data_communicator))
         return output
 
     @staticmethod
@@ -171,7 +172,7 @@ class SnapshotIOBase(abc.ABC):
     def _ExtractConditionDataNames(model_part: KratosMultiphysics.ModelPart, check_mesh_consistency: bool = False) -> "list[str]":
         data_communicator = model_part.GetCommunicator().GetDataCommunicator()
         local_names = model_part.GetNonHistoricalVariablesNames(model_part.Conditions, check_mesh_consistency)
-        output =  list(MPIUnion(list(local_names), data_communicator))
+        output =  list(MPIUnion(set(local_names), data_communicator))
         return output
 
     @staticmethod
@@ -191,12 +192,12 @@ class SnapshotIOBase(abc.ABC):
 
     @abc.abstractstaticmethod
     def GetDefaultIOParameters() -> KratosMultiphysics.Parameters:
-        pass
+        return KratosMultiphysics.Parameters()
 
     @abc.abstractmethod
     def _GetOperations(self, model_part: KratosMultiphysics.ModelPart) -> typing.Iterable:
         """@brief Get all operations to be performed on the input model part."""
-        pass
+        return []
 
     def __GetInputParameters(self) -> KratosMultiphysics.Parameters:
         """@brief Get IO parameters for reading a file regardless of whether the class is meant for reading or writing."""
@@ -328,7 +329,7 @@ class SnapshotOnDisk(Snapshot):
            @param output_parameters: @ref Parameters to instantiate an output processor from.
         """
         input_parameters.ValidateAndAssignDefaults(SnapshotOnDisk.GetInputType().GetDefaultParameters())
-        file_path = input_parameters["io_settings"]["file_path"].GetString()
+        file_path = pathlib.Path(input_parameters["io_settings"]["file_path"].GetString())
         if file_path.is_file():
             input = SnapshotOnDisk.GetInputType()(input_parameters)
             step, path_id = input.ReadStepAndPathID()
@@ -356,8 +357,8 @@ class SnapshotOnDisk(Snapshot):
         for file_path in CheckpointPattern(pattern).Glob():
             current_input_parameters = input_parameters.Clone()
             current_output_parameters = output_parameters.Clone()
-            current_input_parameters["io_settings"]["file_path"].SetString(file_path)
-            current_output_parameters["io_settings"]["file_path"].SetString(file_path)
+            current_input_parameters["io_settings"]["file_path"].SetString(str(file_path))
+            current_output_parameters["io_settings"]["file_path"].SetString(str(file_path))
             snapshots.append(SnapshotOnDisk.FromFile(current_input_parameters, current_output_parameters))
 
         snapshots.sort()
