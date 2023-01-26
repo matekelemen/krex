@@ -4,5 +4,5 @@ FluidDynamicsApplication
 HDF5Application
 TrilinosApplication
 MetisApplication
-WRApp
+WRApplication
 BenchmarkApplication

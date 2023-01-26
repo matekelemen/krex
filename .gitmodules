@@ -4,6 +4,3 @@
 [submodule "external/cie"]
 	path = external/cie
 	url = https://github.com/matekelemen/cie.git
-[submodule "applications/WRApp"]
-	path = applications/WRApp
-	url = https://github.com/matekelemen/WRApp
