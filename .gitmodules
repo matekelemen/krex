@@ -7,3 +7,6 @@
 [submodule "applications/WRApplication"]
 	path = applications/WRApplication
 	url = https://github.com/matekelemen/wrapp
+[submodule "applications/BenchmarkApplication"]
+	path = applications/BenchmarkApplication
+	url = https://github.com/matekelemen/BenchmarkApplication
