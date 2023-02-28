@@ -144,7 +144,7 @@ def getBuildSystem(arguments: argparse.Namespace) -> str:
     raise RuntimeError("No supported build system is available")
 
 
-def generateCMakeCommand(arguments: argparse.Namespace) -> str:
+def generateCMakeCommand(arguments: argparse.Namespace) -> "list[str]":
     # Build CMake command
     cmakeCommand = ["cmake"]
 
@@ -212,6 +212,8 @@ def generateCMakeCommand(arguments: argparse.Namespace) -> str:
     if arguments.enableProfiling:
         cmakeCommand.append(f"-DKRATOS_ENABLE_PROFILING:BOOL=ON")
 
+    cmakeCommand.append("-DTRILINOS_ROOT:STRING=/home/kelemen/git/trilinos/build/install")
+
     # Build system
     cmakeCommand.append(f"-G{getBuildSystem(arguments)}")
 
@@ -225,7 +227,6 @@ def main(argv: "list[str]") -> int:
     # Parse CL arguments
     parser = makeArgumentParser()
     arguments = parser.parse_args(argv)
-    print(arguments.compileOptions)
 
     # Clean if requested
     if arguments.clean:
