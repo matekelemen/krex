@@ -12,7 +12,11 @@ import multiprocessing
 
 
 def isCommandAvailable(command: str) -> bool:
-    return bool(subprocess.check_output(f"command -v {command}", shell = True))
+    process = subprocess.Popen(f"command -v {command}",
+                               shell = True,
+                               stdout = subprocess.PIPE)
+    process.wait()
+    return not process.returncode
 
 
 def which(command: str) -> str:
