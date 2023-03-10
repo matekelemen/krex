@@ -212,8 +212,6 @@ def generateCMakeCommand(arguments: argparse.Namespace) -> "list[str]":
     if arguments.enableProfiling:
         cmakeCommand.append(f"-DKRATOS_ENABLE_PROFILING:BOOL=ON")
 
-    cmakeCommand.append("-DTRILINOS_ROOT:STRING=/home/kelemen/git/trilinos/build/install")
-
     # Build system
     cmakeCommand.append(f"-G{getBuildSystem(arguments)}")
 
