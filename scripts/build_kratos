@@ -20,7 +20,7 @@ def isCommandAvailable(command: str) -> bool:
 
 
 def which(command: str) -> str:
-    return shutil.which(command)
+    return str(shutil.which(command))
 
 
 def makeArgumentParser() -> argparse.ArgumentParser:
