@@ -1,11 +1,7 @@
-LinearSolversApplication
-StructuralMechanicsApplication
-FluidDynamicsApplication
-FSIApplication
 MappingApplication
 MeshMovingApplication
-HDF5Application
 CoSimulationApplication
-TrilinosApplication
-MetisApplication
 StatisticsApplication
+OptimizationApplication
+FSIApplication
+MetisApplication
