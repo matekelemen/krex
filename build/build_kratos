@@ -102,6 +102,12 @@ else
     compile_opts="--compile-opts=${compile_opts}"
 fi
 
+# Check MPI
+mpi_flag=""
+if command -v mpirun &> /dev/null; then
+    mpi_flag="--enable-mpi"
+fi
+
 python3 "${source_dir}/scripts/build_kratos"    \
     --applications ${app_names}                 \
     --source-dir "${kratos_source_dir}"         \
@@ -113,5 +119,5 @@ python3 "${source_dir}/scripts/build_kratos"    \
     ${compile_opts}                             \
     ${clean}                                    \
     --enable-profiling                          \
-    --enable-mpi                                \
+    ${mpi_flag}                                 \
     --install
