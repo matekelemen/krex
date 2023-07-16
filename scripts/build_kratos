@@ -235,6 +235,8 @@ def main(argv: "list[str]") -> int:
         directoriesToRemove = [arguments.buildDirectory]
         if arguments.install:
             directoriesToRemove.append(arguments.installDirectory / "KratosMultiphysics")
+            directoriesToRemove.append(arguments.installDirectory / "libs")
+            directoriesToRemove.append(arguments.installDirectory / "kratos")
         for directory in directoriesToRemove:
             if directory.is_dir():
                 shutil.rmtree(str(directory))

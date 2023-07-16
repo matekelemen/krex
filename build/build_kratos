@@ -16,7 +16,7 @@ print_help() {
 }
 
 get_site_packages_dir() {
-    echo $(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+    echo $(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 }
 
 # Set default arguments
@@ -25,7 +25,6 @@ script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 build_type="FullDebug"
 compiler_family="gcc"
 compile_opts=""
-link_opts=""
 clean=0
 include_branch_name=0
 app_file_path="${script_dir}/kratos_default_apps.txt"
