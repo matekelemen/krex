@@ -174,7 +174,6 @@ def generateCMakeCommand(arguments: argparse.Namespace) -> "list[str]":
     else:
         raise RuntimeError(f"Unsupported compiler: {arguments.compiler}")
 
-    #arguments.compileOptions.append("-fdiagnostics-color=always")
     if arguments.compileOptions:
         cmakeCommand.append(f"-DCMAKE_CXX_FLAGS:STRING=\"{' '.join(arguments.compileOptions)}\"")
 
@@ -247,17 +246,43 @@ def main(argv: "list[str]") -> int:
     except Exception as exception:
         raise SystemExit(exception)
 
-    # ... and run it
+    # Environment setup
+    if any(platformName in sys.platform for platformName in ("linux", "darwin")):
+        intelPathCandidates = (pathlib.Path("/") / "opt" / "intel" / "oneapi" / "setvars.sh",)
+        for path in intelPathCandidates:
+            if path.exists():
+                import shlex
+                shellProcess = subprocess.Popen(shlex.split(f"env -i bash -c 'source {path} &> /dev/null && env'"),
+                                                stdout = subprocess.PIPE)
+                if shellProcess.returncode:
+                    exit(shellProcess.returncode)
+                for line in shellProcess.stdout:
+                    key, _, value = line.partition("=".encode())
+                    key, value = key.decode(), value.decode()
+                    if not key in os.environ:
+                        os.environ[key] = value
+                break
+        cmakeCommand.append("-DUSE_EIGEN_MKL=ON")
+    elif "win32" in sys.platform:
+        cmakeCommand.append("-DUSE_EIGEN_MKL=OFF")
+    else:
+        raise OSError(f"Unsupported OS: {sys.platform}")
+
+    # Run CMake configuration
     if subprocess.call(cmakeCommand):
         return 1
 
     # Build
-    processors = max([multiprocessing.cpu_count() - 1,1])
+    try:
+        import psutil
+        threads = psutil.cpu_count(logical = False)
+    except ImportError:
+        threads = max([multiprocessing.cpu_count() - 1,1])
     if subprocess.call(["cmake",
                         "--build",
                         str(arguments.buildDirectory),
                         "-j",
-                        str(processors)]):
+                        str(threads)]):
         return 1
 
     # Install
