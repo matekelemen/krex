@@ -210,7 +210,6 @@ def generateCMakeCommand(arguments: argparse.Namespace) -> "list[str]":
 
     # Other options
     cmakeCommand.append(f"-DUSE_MPI:BOOL={'ON' if arguments.enableMPI else 'OFF'}")
-    cmakeCommand.append(f"-DUSE_EIGEN_MKL:BOOL={'ON' if arguments.enableMKL else 'OFF'}")
 
     if arguments.enableProfiling:
         cmakeCommand.append(f"-DKRATOS_ENABLE_PROFILING:BOOL=ON")
@@ -247,26 +246,29 @@ def main(argv: "list[str]") -> int:
         raise SystemExit(exception)
 
     # Environment setup
-    if any(platformName in sys.platform for platformName in ("linux", "darwin")):
-        intelPathCandidates = (pathlib.Path("/") / "opt" / "intel" / "oneapi" / "setvars.sh",)
-        for path in intelPathCandidates:
-            if path.exists():
-                import shlex
-                shellProcess = subprocess.Popen(shlex.split(f"env -i bash -c 'source {path} &> /dev/null && env'"),
-                                                stdout = subprocess.PIPE)
-                if shellProcess.returncode:
-                    exit(shellProcess.returncode)
-                for line in shellProcess.stdout:
-                    key, _, value = line.partition("=".encode())
-                    key, value = key.decode(), value.decode()
-                    if not key in os.environ:
-                        os.environ[key] = value
-                break
-        cmakeCommand.append("-DUSE_EIGEN_MKL=ON")
-    elif "win32" in sys.platform:
-        cmakeCommand.append("-DUSE_EIGEN_MKL=OFF")
+    if arguments.enableMKL:
+        if any(platformName in sys.platform for platformName in ("linux", "darwin")):
+            intelPathCandidates = (pathlib.Path("/") / "opt" / "intel" / "oneapi" / "setvars.sh",)
+            for path in intelPathCandidates:
+                if path.exists():
+                    import shlex
+                    shellProcess = subprocess.Popen(shlex.split(f"env -i bash -c 'source {path} &> /dev/null && env'"),
+                                                    stdout = subprocess.PIPE)
+                    if shellProcess.returncode:
+                        exit(shellProcess.returncode)
+                    for line in shellProcess.stdout:
+                        key, _, value = line.partition("=".encode())
+                        key, value = key.decode(), value.decode()
+                        if not key in os.environ:
+                            os.environ[key] = value
+                    break
+            cmakeCommand.append("-DUSE_EIGEN_MKL:BOOl=ON")
+        elif "win32" in sys.platform:
+            cmakeCommand.append("-DUSE_EIGEN_MKL:BOOL=OFF")
+        else:
+            raise OSError(f"Unsupported OS: {sys.platform}")
     else:
-        raise OSError(f"Unsupported OS: {sys.platform}")
+        cmakeCommand.append("-DUSE_EIGEN_MKL:BOOL=OFF")
 
     # Run CMake configuration
     if subprocess.call(cmakeCommand):
