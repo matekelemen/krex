@@ -1,8 +1,7 @@
 /*
 !.gitignore
-!external
-!applications
 !scripts
+!containers
 !CMakeLists.txt
 !build
 

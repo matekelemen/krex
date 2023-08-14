@@ -1,0 +1,14 @@
+
+Bootstrap: localimage
+From: krex_source_ubuntu.sif
+
+%post -c /bin/bash
+    set -e
+
+    mkdir -p git
+    cd git
+
+    # Build
+    cd krex/build
+    source $HOME/python_venv/kratos_release/bin/activate
+    ./build_kratos -t Release -c gcc -a kratos_default_apps.txt -a kratos_extended_apps.txt -a kratos_custom_apps.txt

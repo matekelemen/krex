@@ -1,0 +1,13 @@
+
+Bootstrap: localimage
+From: krex_base_ubuntu.sif
+
+%post -c /bin/bash
+    set -e
+
+    # Repos
+    mkdir -p git
+    cd git
+
+    # Krex
+    git clone https://github.com/matekelemen/krex.git krex --depth 1 --recursive

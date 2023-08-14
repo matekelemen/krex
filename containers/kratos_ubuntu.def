@@ -1,0 +1,21 @@
+Bootstrap: localimage
+From: kratos_base_ubuntu.sif
+
+%post -c /bin/bash
+    # Repos
+    cd $home
+    mkdir git
+    cd git
+
+    # Linutils
+    git clone https://github.com/matekelemen/linutils.git --depth 1
+    python linutils/install.py
+    echo "export PATH=$PATH:$HOME/.local/bin" >> $HOME/.bashrc
+
+    # Krex
+    git clone https://github.com/matekelemen/krex.git krex --depth 1 --recursive
+    
+    # Build
+    cd krex/build
+    ./build_kratos -t Release -c gcc -a kratos_default_apps.txt -a kratos_extended_apps.txt -a kratos_custom_apps.txt
+
