@@ -1,12 +1,9 @@
 [submodule "external/kratos"]
-	path = external/kratos
+	path = src/kratos
 	url = https://github.com/matekelemen/kratos.git
-[submodule "external/cie"]
-	path = external/cie
-	url = https://github.com/matekelemen/cie.git
 [submodule "applications/WRApplication"]
-	path = applications/WRApplication
+	path = src/WRApplication
 	url = https://github.com/matekelemen/wrapp
 [submodule "applications/BenchmarkApplication"]
-	path = applications/BenchmarkApplication
+	path = src/BenchmarkApplication
 	url = https://github.com/matekelemen/BenchmarkApplication
