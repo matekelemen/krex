@@ -1,7 +1,7 @@
 /*
 !.gitignore
 !build_cie
-!build_kratos
+!build_kratos.sh
 !kratos_default_apps.txt
 !kratos_extended_apps.txt
 !kratos_custom_apps.txt
