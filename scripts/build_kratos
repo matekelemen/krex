@@ -39,7 +39,7 @@ def makeArgumentParser() -> argparse.ArgumentParser:
                         "--build-dir",
                         dest = "buildDirectory",
                         type = pathlib.Path,
-                        default = pathlib.Path(__file__).absolute().parent / "kratos" / "build",
+                        default = pathlib.Path(__file__).absolute().parent / "build" / "kratos",
                         help = "Path to the directory to build KratosMultiphysics in.")
 
     parser.add_argument("-i",
