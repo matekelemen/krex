@@ -186,7 +186,6 @@ if ! cmake                                                  \
     "$mpi_flag"                                             \
     "$mkl_flag"                                             \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
-    "-DKRATOS_INSTALL_PYTHON_USING_LINKS:BOOL=ON"           \
     $(echo $cmakeArguments | tr '\;' '\n')                  \
     ; then
     exit $?
