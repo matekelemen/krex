@@ -3,8 +3,8 @@ From: ubuntu:22.04
 
 %post -c /bin/bash
     set -e
-    home="$pwd"
 
+    cd "$HOME"
     if ! apt update -y && apt upgrade -y; then
         exit $?
     fi
@@ -49,16 +49,9 @@ From: ubuntu:22.04
         python3-pip                                                                                     \
         python3-venv
 
+    cd "$HOME"
     /usr/sbin/update-ccache-symlinks
     echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
-
-    # Create python virtual environments
-    cd "$home"
-    mkdir "python_venv"
-    cd "python_venv"
-    if ! python3 -m pip install --upgrade pip; then echo "Error: failed to update pip" && exit $?; fi
-    if ! python3 -m venv kratos_release --copies; then echo "Error: failed to create virtual environment" && exit $?; fi
-    source kratos_release/bin/activate
 
     python3 -m pip install                                                                              \
         numpy                                                                                           \
@@ -73,6 +66,8 @@ From: ubuntu:22.04
     apt clean
 
     # Linutils
-    cd "$home"
+    cd "$HOME"
+    mkdir -p git
+    cd git
     git clone https://github.com/matekelemen/linutils.git --depth 1
     python3 linutils/install.py

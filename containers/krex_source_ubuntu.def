@@ -6,6 +6,7 @@ From: krex_base_ubuntu.sif
     set -e
 
     # Repos
+    cd "$HOME"
     mkdir -p git
     cd git
 
