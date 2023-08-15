@@ -6,14 +6,15 @@ From: krex_source_ubuntu.sif
     set -e
 
     cd "$HOME"
-    source .bashrc
-    cat .bashrc
-    echo $PATH
-    echo $(pwd)
     mkdir -p git
     cd git
 
     # Build
     cd krex/build
-    source penv kratos_release
-    ./build_kratos -t Release -c gcc -a kratos_default_apps.txt -a kratos_extended_apps.txt -a kratos_custom_apps.txt
+    ./build_kratos.sh -t Release -c gcc     \
+        -a StructuralMechanicsApplication   \
+        -a FluidDynamicsApplication         \
+        -a LinearSolversApplication         \
+        -a MetisApplication                 \
+        -a HDF5Application                  \
+        -a ../src/WRApplication

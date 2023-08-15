@@ -174,6 +174,7 @@ if command -v ccache &>/dev/null; then
 fi
 
 # Generate with CMake
+export KRATOS_INSTALL_PYTHON_USING_LINKS="ON"
 if ! cmake                                                  \
     "-H$source_dir"                                         \
     "-B$build_dir"                                          \
@@ -184,7 +185,7 @@ if ! cmake                                                  \
     "$ccache_flag"                                          \
     "$mpi_flag"                                             \
     "$mkl_flag"                                             \
-    "-DKRATOS_GENERATE_PYHON_STUBS:BOOL=ON"                 \
+    "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
     "-DKRATOS_INSTALL_PYTHON_USING_LINKS:BOOL=ON"           \
     $(echo $cmakeArguments | tr '\;' '\n')                  \
     ; then
