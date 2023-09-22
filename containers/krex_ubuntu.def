@@ -15,6 +15,9 @@ From: krex_source_ubuntu.sif
         -a StructuralMechanicsApplication   \
         -a FluidDynamicsApplication         \
         -a LinearSolversApplication         \
+        -a MappingApplication               \
         -a MetisApplication                 \
+        -a CoSimulationApplication          \
+        -a MeshMovingApplication            \
         -a HDF5Application                  \
         -a ../src/WRApplication
