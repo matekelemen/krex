@@ -53,7 +53,7 @@ mkl_flag="-DUSE_EIGEN_MKL:BOOL=OFF"             # <== toggle support for Intel M
 
 # Define default arguments
 build_type="Release".                           # <== passed to CMAKE_BUILD_TYPE
-build_dir="${source_dir}/build/kratos"          # <== path to the build directory
+build_dir="${source_dir}/build"                 # <== path to the build directory
 install_dir="$(get_site_packages_dir)"          # <== path to install kratos to
 clean=0                                         # <== clean the build and install directories, then exit
 cmake_arguments=""                              # <== additional arguments passed on to CMake
@@ -172,6 +172,9 @@ fi
 if command -v ccache &>/dev/null; then
     ccache_flag="-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=ccache"
 fi
+
+# Clear CMake cache
+rm -f "$build_dir/CMakeCache.txt"
 
 # Generate with CMake
 export KRATOS_INSTALL_PYTHON_USING_LINKS="ON"
