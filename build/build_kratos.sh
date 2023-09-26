@@ -183,7 +183,6 @@ if ! cmake                                                  \
     "-B$build_dir"                                          \
     "-DCMAKE_INSTALL_PREFIX:STRING=$install_dir"            \
     "-G${generator}"                                        \
-    "-DCMAKE_BUILD_TYPE:STRING=$build_type"                 \
     "-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON"                     \
     "$ccache_flag"                                          \
     "$mpi_flag"                                             \
@@ -197,6 +196,6 @@ fi
 physical_cores=$(grep "^cpu\\scores" /proc/cpuinfo | uniq |  awk '{print $4}')
 
 # Build and install
-if ! cmake --build "$build_dir" --target install -j $physical_cores; then
+if ! cmake --build "$build_dir" --config "$build_type" --target install -j $physical_cores; then
     exit $?
 fi
