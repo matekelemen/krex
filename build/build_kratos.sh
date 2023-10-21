@@ -1,19 +1,16 @@
 #!/bin/bash
 
-set -e
-
 script_name="$(basename ${BASH_SOURCE[0]})"
 
 print_help() {
     echo "$script_name - Configure, build, and install KratosMultiphysics."
-    echo "Usage: build [OPTIONS]"
-    echo "[-hCb:t:c:o:a:]"
+    echo "Usage: $script_name [OPTIONS [ARGUMENT]]"
     echo "-h                    : print this help and exit"
     echo "-C                    : clean build and install directories, then exit"
     echo "-b build_path         : path to the build directory (created if it does not exist yet)"
     echo "-i install_path       : path to the install directory (created if it does not exist yet)"
     echo "-t build_type         : build type [FullDebug, Debug, Release, RelWithDebInfo] (Default: FullDebug)"
-    echo "-c compiler_name      : compiler family [gcc, clang] (Default: gcc)"
+    echo "-c compiler_name      : compiler family [gcc, clang, icc] (Default: gcc)"
     echo "-o option             : options/arguments to pass on to CMake. Semicolon (;) delimited, or defined repeatedly."
     echo "-a application_name   : name or path of the application to build (can be passed repeatedly to add more applications)"
     echo
@@ -26,6 +23,7 @@ print_help() {
     echo "Recommended build tools:"
     echo " - ccache"
     echo " - ninja"
+    exit 0
 }
 
 if ! command -v python3 &>/dev/null; then
@@ -75,7 +73,7 @@ add_app() {
 }
 
 # Parse CL arguments
-while getopts "hCb:i:t:c:o:a:" arg; do
+while getopts ":h C b: i: t: c: o: a:" arg; do
     case $arg in
         h)  # Print help and exit without doing anything.
             print_help
@@ -92,7 +90,14 @@ while getopts "hCb:i:t:c:o:a:" arg; do
             ;;
         t)  # Select build type
             build_type="${OPTARG}"
-            (("${build_type}" == "FullDebug" || "${build_type}" == "Debug" || "${build_type}" == "RelWithDebInfo" || "${build_type}" == "Release")) || (print_help && echo "Invalid build type: ${build_type}" && exit 1)
+            if ! [[ "${build_type}" == "FullDebug"           \
+                     || "${build_type}" == "Debug"           \
+                     || "${build_type}" == "RelWithDebInfo"  \
+                     || "${build_type}" == "Release" ]]; then
+                echo "Error: invalid build type: ${build_type}"
+                print_help
+                exit 1
+            fi
             ;;
         c)  # Select compilers
             compiler_family="${OPTARG}"
@@ -106,18 +111,23 @@ while getopts "hCb:i:t:c:o:a:" arg; do
                 export CC="$(which icc)"
                 export CXX="$(which i++)"
             else
-                echo "Unsupported compiler family: $compiler_family"
+                echo "Error: unsupported compiler family: $compiler_family"
                 exit 1
             fi
             ;;
         o)  # Append CMake arguments
-            cmake_arguments="$cmakeArguments;$OPTARG"
+            if [ "$cmake_arguments" = "" ]; then
+                cmake_arguments="$OPTARG"
+            else
+                cmake_arguments="$cmake_arguments;$OPTARG"
+            fi
             ;;
         a)  # Set path to a file containing a list of applications' names to be compiled
             add_app "${OPTARG}"
             ;;
         \?) # Invalid argument
-            echo "Unrecognized argument: ${arg}"
+            echo "Error: unrecognized argument: ${OPTARG}"
+            print_help
             exit 1
     esac
 done
@@ -153,7 +163,7 @@ if [ $clean -ne 0 ]; then
 fi
 
 # Check whether intel mkl is available
-if [ -f "/opt/intel/oneapi/setvars.sh" ]; then
+if [[ -f "/opt/intel/oneapi/setvars.sh" && "$compiler_family" -ne "clang" ]]; then
     source "/opt/intel/oneapi/setvars.sh"
     mkl_flag="-DUSE_EIGEN_MKL:BOOl=ON"
 fi
@@ -183,19 +193,20 @@ if ! cmake                                                  \
     "-B$build_dir"                                          \
     "-DCMAKE_INSTALL_PREFIX:STRING=$install_dir"            \
     "-G${generator}"                                        \
+    "-DCMAKE_BUILD_TYPE:STRING=$build_type"                 \
     "-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON"                     \
     "$ccache_flag"                                          \
     "$mpi_flag"                                             \
     "$mkl_flag"                                             \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
-    $(echo $cmakeArguments | tr '\;' '\n')                  \
+    $(echo $cmake_arguments | tr '\;' '\n')                 \
     ; then
-    exit $?
+    exit 1
 fi
 
 physical_cores=$(grep "^cpu\\scores" /proc/cpuinfo | uniq |  awk '{print $4}')
 
 # Build and install
 if ! cmake --build "$build_dir" --config "$build_type" --target install -j $physical_cores; then
-    exit $?
+    exit 1
 fi
