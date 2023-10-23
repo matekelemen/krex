@@ -2,7 +2,7 @@
 
 scriptName="$(basename ${BASH_SOURCE[0]})"
 
-print_help() {
+printHelp() {
     echo "Usage: $scriptName -i path_to_apptainer_def_file [options [arguments]]"
     echo "-h                              : print this help and exit"
     echo "-i path_to_apptainer_def_file   : path to the definition to build"
@@ -12,13 +12,14 @@ print_help() {
 
 # Default arguments
 definitionFile=""
-tmpDir=".apptainer_tmpdir"
+defaultTmpDir=".apptainer_tmpdir"
+tmpDir="$defaultTmpDir"
 outputFile=""
 
-while getopts "hi:t:o:" arg; do
+while getopts ":h i: t: o:" arg; do
   case "$arg" in
     h)  # Print help and exit
-        print_help
+        printHelp
         exit 0
         ;;
     i)  # Set definition file
@@ -31,10 +32,15 @@ while getopts "hi:t:o:" arg; do
         outputFile="$OPTARG"
         ;;
     \?) # Unrecognized argument
-        echo "Error: unrecognized argument: $arg"
+        echo "Error: unrecognized argument: $OPTARG"
         exit 1
   esac
 done
+
+if ! command -v apptainer &>/dev/null; then
+    echo "Error: apptainer is not installed on your system"
+    exit 1
+fi
 
 if ! [ -f "$definitionFile" ]; then
   echo "Error: definition file not found: '$definitionFile'"
@@ -50,13 +56,17 @@ if [ "$outputFile" = "" ]; then
 fi
 
 tmpDir=$(realpath "$tmpDir")
-if [ -d "$tmpDir" ]; then
-  echo "Temporary directory already exists: '$tmpDir'"
-  exit 1
+if [ -d "$tmpDir" ]; then                                           # <== tmp dir already exists
+  if [ "$tmpDir" = "$defaultTmpDir" ]; then
+    rm -rf "$tmpDir"                                                # <== remove the tmp dir if it's the default one
+  else
+    echo "Error: temporary directory already exists: '$tmpDir'"
+    exit 1                                                          # <== error if the tmp dir exists but isn't the default
+  fi
 fi
 
 if ! mkdir -p "$tmpDir"; then
-  echo "Failed to create temporary directory: '$tmpDir'"
+  echo "Error: failed to create temporary directory: '$tmpDir'"
   exit 1
 fi
 
@@ -65,9 +75,8 @@ trap "rm -rf $tmpDir" 0 2 3 15
 export APPTAINER_TMPDIR="$tmpDir"
 
 if ! apptainer build "$outputFile" "$definitionFile"; then
-  echo "Error: image build failed with exit code $?"
+  echo "Error: apptainer failed to build image"
   exit 1
 fi
 
 exit 0
-
