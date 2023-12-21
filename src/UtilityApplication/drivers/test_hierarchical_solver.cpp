@@ -70,7 +70,7 @@ void MakeDofs(ModelPart& rModelPart,
  *           are constrained at one of their vertices by a single MPC.
  *           @code
  *           +-----+-----+ (master) <- MPC -> (slave) +-----+-----+   <==
- *           0     4     1                            2     5     3    F
+ *           0     2     1                            3     5     4    F
  *           | element 0 |                            | element 1 |
  *           @endcode
  */
@@ -83,20 +83,20 @@ void OneMasterOneSlave(std::unique_ptr<Model>& rpModel,
     ModelPart& r_model_part = rpModel->GetModelPart("root");
     r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto p_master_node = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto p_slave_node = r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(4, 2.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(5, 0.5, 0.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.5, 0.0, 0.0);
+    auto p_slave_node = r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(5, 2.0, 0.0, 0.0);
     r_model_part.CreateNewNode(6, 1.5, 0.0, 0.0);
 
     // Construct elements
     auto p_properties = Properties::Pointer(new Properties);
     r_model_part.CreateNewElement("SmallDisplacementTrussElement2D3N",
                                   1,
-                                  {1, 2, 5},
+                                  {1, 2, 3},
                                   p_properties);
     r_model_part.CreateNewElement("SmallDisplacementTrussElement2D3N",
                                   2,
-                                  {3, 4, 6},
+                                  {4, 5, 6},
                                   p_properties);
 
     // Construct DoFs and MPCs
@@ -113,24 +113,23 @@ void OneMasterOneSlave(std::unique_ptr<Model>& rpModel,
     // Set stiffness matrix
     rStiffness.clear();
     rStiffness.resize(6, 6);
-    rStiffness.insert_element(0, 0,  7.0 / 6.0);
-    rStiffness.insert_element(0, 1,  1.0 / 6.0);
-    rStiffness.insert_element(0, 4, -4.0 / 3.0);
-    rStiffness.insert_element(1, 0,  1.0 / 6.0);
-    rStiffness.insert_element(1, 1,  7.0 / 3.0);
-    rStiffness.insert_element(1, 3,  1.0 / 6.0);
-    rStiffness.insert_element(1, 4, -4.0 / 3.0);
-    rStiffness.insert_element(1, 5, -4.0 / 3.0);
-    rStiffness.insert_element(2, 2,        1.0);
-    rStiffness.insert_element(3, 1,  1.0 / 6.0);
-    rStiffness.insert_element(3, 3,  7.0 / 6.0);
-    rStiffness.insert_element(3, 5, -4.0 / 3.0);
-    rStiffness.insert_element(4, 0, -4.0 / 3.0);
-    rStiffness.insert_element(4, 1, -4.0 / 3.0);
-    rStiffness.insert_element(4, 4,  8.0 / 3.0);
-    rStiffness.insert_element(5, 1, -4.0 / 3.0);
-    rStiffness.insert_element(5, 3, -4.0 / 3.0);
-    rStiffness.insert_element(5, 5,  8.0 / 3.0);
+    rStiffness.insert_element(0, 0,  1.1666666666666667);
+    rStiffness.insert_element(0, 1,  0.16666666666666666);
+    rStiffness.insert_element(0, 2, -1.3333333333333333);
+    rStiffness.insert_element(1, 0,  0.16666666666666666);
+    rStiffness.insert_element(1, 1,  2.3333333333333335);
+    rStiffness.insert_element(1, 2, -1.3333333333333333);
+    rStiffness.insert_element(1, 4,  0.16666666666666666);
+    rStiffness.insert_element(1, 5, -1.3333333333333333);
+    rStiffness.insert_element(2, 0, -1.3333333333333333);
+    rStiffness.insert_element(2, 1, -1.3333333333333333);
+    rStiffness.insert_element(2, 2,  2.6666666666666665);
+    rStiffness.insert_element(4, 1,  0.16666666666666666);
+    rStiffness.insert_element(4, 4,  1.1666666666666667);
+    rStiffness.insert_element(4, 5, -1.3333333333333333);
+    rStiffness.insert_element(5, 1, -1.3333333333333333);
+    rStiffness.insert_element(5, 4, -1.3333333333333333);
+    rStiffness.insert_element(5, 5,  2.6666666666666665);
 
     // Set RHS
     rRHS.resize(6);
