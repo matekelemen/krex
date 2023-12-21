@@ -1,0 +1,17 @@
+*
+!.gitignore
+!CMakeLists.txt
+
+!drivers
+!drivers/*.cpp
+
+!include
+!include/UtilityApp
+!include/UtilityApp/*.hpp
+
+!src
+!src/*.cpp
+
+!scripts
+!scripts/*.sh
+!scripts/*.py
