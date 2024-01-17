@@ -10,9 +10,34 @@ import scipy.io
 
 # --- STD Imports ---
 import typing
+import enum
 
 
+class Configuration(enum.Enum):
+    OneMasterOneSlave   = 0
+    OneMasterTwoSlaves  = 1
+    TwoMastersOneSlave  = 2
+
+
+# Config
+configuration = Configuration.OneMasterTwoSlaves
 numpy.set_printoptions(precision=1)
+
+element_count: int
+masters: list[int]
+slaves: list[int]
+if configuration == Configuration.OneMasterOneSlave:
+    element_count = 2
+    masters = [1]
+    slaves = [3]
+elif configuration == Configuration.OneMasterTwoSlaves:
+    element_count = 3
+    masters = [1, 1]
+    slaves = [3, 6]
+elif configuration == Configuration.TwoMastersOneSlave:
+    element_count = 3
+else:
+    raise ValueError(f"unknown configuration: {configuration}")
 
 # Define workflow for constructing an unconstrained system matrix
 def MakeStiffnessComponent(left_basis_function: typing.Callable[[float],float],
@@ -35,6 +60,11 @@ def AssembleStiffness(element_stiffness: numpy.ndarray,
         begin = i_element * dofs_per_element
         end = begin + dofs_per_element
         stiffness[begin:end, begin:end] = element_stiffness.copy()
+
+    # Set a homogeneous Dirichlet condition on the leftmost DoF
+    stiffness[0,:] = numpy.zeros((1,stiffness.shape[1]))
+    stiffness[0, 0] = 1.0
+
     return stiffness
 
 def MakeRelations(system_size: int,
@@ -56,13 +86,14 @@ def MakeRelations(system_size: int,
 
 # Init
 x = sympy.Symbol("x")
-element_count = 2
 
 # Define unconstrained linear system
 linear_basis = [(1 - x) / 2,
                 (1 + x) / 2 ]
 unconstrained_linear_element_stiffness = MakeStiffness(linear_basis, x)
 unconstrained_linear_stiffness = AssembleStiffness(unconstrained_linear_element_stiffness, element_count)
+unconstrained_linear_rhs = numpy.zeros((unconstrained_linear_stiffness.shape[0], 1))
+unconstrained_linear_rhs[1] = -1.0
 
 # Define unconstrained quadratic system
 quadratic_basis = [x * (x - 1) / 2,
@@ -70,11 +101,11 @@ quadratic_basis = [x * (x - 1) / 2,
                    1 - x * x       ]
 unconstrained_quadratic_element_stiffness = MakeStiffness(quadratic_basis, x)
 unconstrained_quadratic_stiffness = AssembleStiffness(unconstrained_quadratic_element_stiffness, element_count)
+unconstrained_quadratic_rhs = numpy.zeros((unconstrained_quadratic_stiffness.shape[0], 1))
+unconstrained_quadratic_rhs[1] = -1.0
 
 # Define MPCs
 quadratic_system_size = unconstrained_quadratic_stiffness.shape[0]
-masters = [1]
-slaves = [3]
 quadratic_relations = MakeRelations(quadratic_system_size, masters, slaves)
 
 linear_relations = numpy.zeros(unconstrained_linear_stiffness.shape)
@@ -83,34 +114,54 @@ for i_linear in range(len(linear_basis)):
         linear_relations[i_linear::len(linear_basis),j_linear::len(linear_basis)] = quadratic_relations[i_linear::len(quadratic_basis),j_linear::len(quadratic_basis)]
 
 
-# Compute the constrained stiffnesses
+# Compute the constrained systems
 constrained_linear_stiffness = linear_relations.transpose().dot(unconstrained_linear_stiffness).dot(linear_relations).astype(float)
+constrained_linear_rhs = linear_relations.transpose().dot(unconstrained_linear_rhs)
+
 constrained_quadratic_stiffness = quadratic_relations.transpose().dot(unconstrained_quadratic_stiffness).dot(quadratic_relations).astype(float)
+constrained_quadratic_rhs = quadratic_relations.transpose().dot(unconstrained_quadratic_rhs)
 
-# Test restriction operators
-#unconstrained_restriction_operator = numpy.array([
-#    [1.0, 0.0, 0.0, 0.0, 0.5, 0.0],
-#    [0.0, 1.0, 0.0, 0.0, 0.5, 0.0],
-#    [0.0, 0.0, 1.0, 0.0, 0.0, 0.5],
-#    [0.0, 0.0, 0.0, 1.0, 0.0, 0.5]
-#])
-#restriction_operator = linear_relations.transpose().dot(unconstrained_restriction_operator).dot(quadratic_relations)
+# Define restriction operator
+unconstrained_restriction_operator: numpy.ndarray
+constrained_restriction_operator: numpy.ndarray
 
-unconstrained_restriction_operator = numpy.array([
-    [1.0, 0.0, 0.5, 0.0, 0.0, 0.0],
-    [0.0, 1.0, 0.5, 0.0, 0.0, 0.0],
-    [0.0, 0.0, 0.0, 1.0, 0.0, 0.5],
-    [0.0, 0.0, 0.0, 0.0, 1.0, 0.5]
-])
-constrained_restriction_operator = numpy.array([
-    [1.0, 0.0, 0.5, 0.0, 0.0, 0.0],
-    [0.0, 1.0, 0.5, 1.0, 0.0, 0.5],
-    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    [0.0, 0.0, 0.0, 0.0, 1.0, 0.5]
-])
+if configuration == Configuration.OneMasterOneSlave:
+    unconstrained_restriction_operator = numpy.array([
+        [1.0, 0.0, 0.5, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.5, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0, 0.0, 0.5],
+        [0.0, 0.0, 0.0, 0.0, 1.0, 0.5]
+    ])
+    constrained_restriction_operator = numpy.array([
+        [1.0, 0.0, 0.5, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.5, 0.0, 0.0, 0.5],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 1.0, 0.5]
+    ])
+elif configuration == Configuration.OneMasterTwoSlaves:
+    unconstrained_restriction_operator = numpy.array([
+        [1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0, 0.0, 0.5, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.5],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.5]
+    ])
+    constrained_restriction_operator = numpy.array([
+        [1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.5, 0.0, 0.0, 0.5, 0.0, 0.0, 0.5],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.5]
+    ])
+else:
+    raise ValueError(f"unsupported configuration: {configuration}")
 
+unconstrained_interpolation_operator = unconstrained_restriction_operator.transpose()
 constrained_interpolation_operator = constrained_restriction_operator.transpose()
 restricted_stiffness = constrained_restriction_operator.dot(constrained_quadratic_stiffness).dot(constrained_interpolation_operator)
+restricted_rhs = constrained_restriction_operator.dot(constrained_quadratic_rhs)
 
 print(f"quadratic relations:\n{quadratic_relations}\n")
 print(f"linear relations:\n{linear_relations}\n")
@@ -118,7 +169,9 @@ print(f"constrained linear stiffness:\n{constrained_linear_stiffness}\n")
 print(f"constrained quadratic stiffness:\n{constrained_quadratic_stiffness}\n")
 print(f"restriction operator:\n{constrained_restriction_operator}\n")
 print(f"restricted stiffness:\n{restricted_stiffness}\n")
+print(f"restricted rhs:\n{restricted_rhs}")
 print(f"restriction error: {numpy.linalg.norm(restricted_stiffness - constrained_linear_stiffness)}")
+print(f"RHS restriction error: {numpy.linalg.norm(restricted_rhs - constrained_linear_rhs)}")
 
 #for i in range(quadratic_system_size):
 #    for j in range(quadratic_system_size):

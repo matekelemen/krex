@@ -7,11 +7,13 @@ target_include_directories(UtilityCore PUBLIC
                            "${CMAKE_CURRENT_SOURCE_DIR}/include"
                            "${KRATOS_SOURCE_DIR}/applications/HDF5Application"
                            "${KRATOS_SOURCE_DIR}/applications/MedApplication"
+                           "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication"
                            "${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication")
 target_link_libraries(UtilityCore PUBLIC
                       KratosCore
                       KratosMedCore
                       KratosHDF5Core
+                      KratosLinearSolversCore
                       KratosStructuralMechanicsCore)
 
 file(GLOB drivers "${CMAKE_CURRENT_SOURCE_DIR}/drivers/*.cpp")
