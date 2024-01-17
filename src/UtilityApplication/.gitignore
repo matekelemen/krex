@@ -12,6 +12,9 @@
 !src
 !src/*.cpp
 
+!cases
+!cases.gitignore
+
 !scripts
 !scripts/*.sh
 !scripts/*.py
