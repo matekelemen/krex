@@ -1,0 +1,88 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+	1 -1 0 0
+	2 0 0 0
+	3 0 1 0
+	4 1 0 0
+    5 -0.5 0.0 0.0
+    6 0.0 0.5 0.0
+    7 -0.5 0.5 0.0
+    8 0.5 0.0 0.0
+    9 0.5 0.5 0.0
+End Nodes
+
+Begin Elements	SmallDisplacementElement2D6N
+	1 0 1 2 3 5 6 7
+	2 0 2 4 3 8 9 6
+End Elements
+
+Begin Conditions PointLoadCondition2D1N
+	1 0 3
+End Conditions
+
+Begin SubModelPart	quadratic_nodes
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		5
+		6
+		7
+		8
+		9
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart	linear_nodes
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		2
+		3
+		4
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart	load
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+		1
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart	dirichlet
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		1
+		4
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart
+
