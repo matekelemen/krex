@@ -1,0 +1,174 @@
+{
+    "problem_data": {
+        "problem_name": "mpc_hierarchical_test",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 1.1
+        },
+        "solver_type": "Static",
+        "model_part_name": "root",
+        "domain_size": 2,
+        "echo_level": 1,
+        "analysis_type": "linear",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "meshes/quadratic"
+        },
+        "material_import_settings": {
+            "materials_filename": "StructuralMaterials.json"
+        },
+        "line_search": false,
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 1e-9,
+        "max_iteration": 1,
+        "use_old_stiffness_in_first_iteration": false,
+        "rotation_dofs": false,
+        "volumetric_strain_dofs": false,
+        "builder_and_solver_settings" : {
+            "advanced_settings" : {
+                "diagonal_values_for_dirichlet_dofs" : "use_diagonal_norm"
+            }
+        },
+        "linear_solver_settings" : {
+            "@include_json" : "solvers/hierarchical_solver.json"
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.dirichlet",
+                    "variable_name": "DISPLACEMENT",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "constrained": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        null
+                    ]
+                }
+            },
+            {
+                "Parameters": {
+                    "independent_model_part_name": "root.master_0",
+                    "dependent_model_part_name": "root.slave_0",
+                    "x": true,
+                    "y": true,
+                    "z": false
+                },
+                "process_name": "RBE1Process",
+                "python_module": "rbe1_process"
+            },
+            {
+                "Parameters": {
+                    "independent_model_part_name": "root.master_1",
+                    "dependent_model_part_name": "root.slave_1",
+                  "x": true,
+                  "y": true,
+                  "z": false
+                },
+                "process_name": "RBE1Process",
+                "python_module": "rbe1_process"
+            },
+            {
+                "Parameters": {
+                    "independent_model_part_name": "root.master_2",
+                    "dependent_model_part_name": "root.slave_2",
+                  "x": true,
+                  "y": true,
+                  "z": false
+                },
+                "process_name": "RBE1Process",
+                "python_module": "rbe1_process"
+            },
+            {
+                "Parameters": {
+                    "independent_model_part_name": "root.master_3",
+                    "dependent_model_part_name": "root.slave_3",
+                  "x": true,
+                  "y": true,
+                  "z": false
+                },
+                "process_name": "RBE1Process",
+                "python_module": "rbe1_process"
+            },
+            {
+                "Parameters": {
+                    "independent_model_part_name": "root.master_4",
+                    "dependent_model_part_name": "root.slave_4",
+                  "x": true,
+                  "y": true,
+                  "z": false
+                },
+                "process_name": "RBE1Process",
+                "python_module": "rbe1_process"
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "model_part_name": "root.load",
+                    "variable_name": "POINT_LOAD",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "modulus": 1.0,
+                    "direction": [
+                        0.0,
+                        1.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
+        "list_other_processes": []
+    },
+    "output_processes": {
+        "hdf5_output": [
+            {
+                "kratos_module" : "KratosMultiphysics.HDF5Application",
+                "python_module" : "single_mesh_temporal_output_process",
+                "process_name" : "SingleMeshTemporalOutputProcess",
+                "Parameters" : {
+                    "model_part_name" : "root",
+                    "file_settings" : {
+                        "file_name" : "structure_<time>.h5",
+                        "file_access_mode" : "truncate"
+                    },
+                    "nodal_solution_step_data_settings" : {
+                        "list_of_variables" : ["DISPLACEMENT", "REACTION"]
+                    },
+                    "nodal_flag_value_settings" : {
+                        "list_of_variables" : ["SLAVE", "MASTER"]
+                    },
+                    "condition_data_value_settings" : {
+                        "list_of_variables" : ["POINT_LOAD"]
+                    }
+                }
+            }
+        ]
+    },
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
+}

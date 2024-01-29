@@ -1,0 +1,228 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1 0 0 0
+    2 1 1 0
+    3 -1 1 0
+    4 0 0 0
+    5 1 0 0
+    6 1 1 0
+    7 0 0 0
+    8 -1 1 0
+    9 -1 0 0
+    20 0 -1 0
+End Nodes
+
+Begin Elements	SmallDisplacementElement2D3N
+    1 0 1 2 3
+    2 0 4 5 6
+    3 0 7 8 9
+End Elements
+
+Begin Conditions PointLoadCondition2D1N
+    1 0 20
+End Conditions
+
+Begin SubModelPart	quadratic_nodes
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart	linear_nodes
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+        1
+        2
+        3
+        4
+        5
+        6
+        7
+        8
+        9
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart load
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+        20
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+        1
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart dirichlet
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+        5
+        9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart master_0
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+        20
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart slave_0
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+        1
+        4
+        7
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart master_1
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+        2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart slave_1
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+        6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart master_2
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+        3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart slave_2
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+        8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart master_3
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart slave_3
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart master_4
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart slave_4
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
