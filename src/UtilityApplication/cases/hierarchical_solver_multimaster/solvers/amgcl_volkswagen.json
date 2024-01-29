@@ -1,0 +1,16 @@
+{
+    "block_size": 3,
+      "coarse_enough": 500,
+      "coarsening_type": "aggregation",
+      "gmres_krylov_space_dimension": 100,
+      "krylov_type": "cg",
+      "max_iteration": 500,
+      "provide_coordinates": false,
+      "scaling": false,
+      "smoother_type": "ilu0",
+      "solver_type": "amgcl",
+      "tolerance": 1e-06,
+      "use_block_matrices_if_possible": true,
+      "use_gpgpu" : false,
+      "verbosity": 1
+}

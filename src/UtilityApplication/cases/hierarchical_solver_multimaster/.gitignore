@@ -5,8 +5,6 @@
 !meshes
 !meshes/linear.mdpa
 !meshes/quadratic.mdpa
-!meshes/consistent_linear.mdpa
-!meshes/consistent_quadratic.mdpa
 
 !rbe1_process.py
 
