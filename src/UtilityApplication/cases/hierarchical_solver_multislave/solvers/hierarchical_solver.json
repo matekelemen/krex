@@ -1,12 +1,15 @@
 {
-        "solver_type": "hierarchical",
-        "verbosity": 4,
-        "max_iterations": 100,
-        "tolerance" : 1e-6,
-        "coarse_solver_settings" : {
-            "@include_json" : "solvers/cg_solver.json"
-        },
-        "fine_solver_settings": {
-            "@include_json" : "solvers/gauss_seidel_solver.json"
+    "solver_type": "hierarchical",
+    "verbosity": 5,
+    "max_iterations": 100,
+    "tolerance" : 1e-6,
+    "pre_smoother_settings" : {
+        "@include_json" : "solvers/gauss_seidel_forward.json"
+    },
+    "coarse_solver_settings" : {
+        "@include_json" : "solvers/cg_solver.json"
+    },
+    "post_smoother_settings": {
+        "@include_json" : "solvers/gauss_seidel_backward.json"
     }
 }

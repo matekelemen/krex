@@ -34,7 +34,7 @@
         "volumetric_strain_dofs": false,
         "builder_and_solver_settings" : {
             "advanced_settings" : {
-                "diagonal_values_for_dirichlet_dofs" : "use_diagonal_norm"
+                "diagonal_values_for_dirichlet_dofs" : "no_scaling"
             }
         },
         "linear_solver_settings" : {

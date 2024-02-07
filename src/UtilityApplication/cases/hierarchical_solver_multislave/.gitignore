@@ -16,5 +16,8 @@
 !ProjectParameters.json
 !StructuralMaterials.json
 !MainKratos.py
+!diff.py
+!filter.py
+!plot.py
 !run.sh
-
+!plot_props.sh
