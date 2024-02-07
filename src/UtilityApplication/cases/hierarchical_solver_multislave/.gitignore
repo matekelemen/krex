@@ -2,6 +2,10 @@
 
 !.gitignore
 
+!readme.md
+!.readme
+!.readme/figure.png
+
 !meshes
 !meshes/linear.mdpa
 !meshes/quadratic.mdpa
