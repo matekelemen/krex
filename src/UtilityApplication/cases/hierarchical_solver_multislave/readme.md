@@ -77,3 +77,17 @@ This is a tricky one that exposes a flaw in the construction of the restriction 
 |:---:|:---:|:---:|:---:|
 |<img src=".readme/quadratic_restriction_operator_1e-1.png"/> | <img src=".readme/linear_system_matrix_filtered.png"/> | <img src=".readme/quadratic_coarse_system_matrix_1e-1.png"/> | <img alt="coarse difference" src=".readme/coarse_diff_1e-1.png"/>|
 | restriction operator | linear system matrix | coarse system matrix | coarse difference matrix |
+
+
+# System Matrix Properties
+
+
+It might be interesting to mention that the properties of the quadratic system matrix depend
+greatly on the MPC coefficient. It might not have much to do with problems the hierarchical
+solver runs into though. The figure below shows how some fine system matrix properties vary
+as a function of $c$.
+
+|     |     |
+|:---:|:---:|
+|<img src=".readme/consistent_quadratic_system_matrix_properties.png"/> | <img src=".readme/quadratic_system_matrix_properties.png"/> |
+| connected case | disconnected case |
