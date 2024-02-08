@@ -106,23 +106,15 @@ This is a tricky one that exposes a flaw in the construction of the restriction 
 
 <div width=100% style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
     <div width=100% style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
-        <figure width=30%; style="margin: 1%;">
-            <img alt="linear system matrix" src=".readme/linear_system_matrix_filtered.png"  width=100%/>
-        </figure>
-        <figure width=30%; style="margin: 1%;">
-            <img alt="restriction operator" src=".readme/quadratic_restriction_operator_1e-1.png" width=100%/>
-        </figure>
-        <figure width=30%; style="margin: 1%;">
-            <img alt="coarse system matrix" src=".readme/quadratic_coarse_system_matrix_1e-1.png"  width=100%/>
-        </figure>
+        <img alt="linear system matrix" src=".readme/linear_system_matrix_filtered.png"  width=30%/>
+        <img alt="restriction operator" src=".readme/quadratic_restriction_operator_1e-1.png" width=30%/>
+        <img alt="coarse system matrix" src=".readme/quadratic_coarse_system_matrix_1e-1.png"  width=30%/>
     </div>
     <div width=100% style="display: flex; flex-direction: row; align-items: center;">
         <figcaption style="width: 30%; margin: 1%; text-align: center;">linear system matrix</figcaption>
         <figcaption style="width: 30%; margin: 1%; text-align: center;">restriction operator</figcaption>
         <figcaption style="width: 30%; margin: 1%; text-align: center;">coarse system matrix</figcaption>
     </div>
-    <div width=100%; style="display: flex; flex-direction: row; align-items: center;">
-        <img alt="coarse difference" src=".readme/coarse_diff_1e-1.png"/>
-    </div>
+    <img alt="coarse difference" src=".readme/coarse_diff_1e-1.png" width=30%/>
     <figcaption style="width: 100%; text-align: center;">coarse difference matrix</figcaption>
 </div>
