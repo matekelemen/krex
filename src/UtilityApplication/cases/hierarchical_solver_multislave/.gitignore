@@ -4,7 +4,7 @@
 
 !readme.md
 !.readme
-!.readme/figure.png
+!.readme/*.png
 
 !meshes
 !meshes/linear.mdpa

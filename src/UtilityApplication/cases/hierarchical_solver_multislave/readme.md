@@ -2,13 +2,13 @@
 <img src=".readme/figure.png" width=300/>
 </p>
 
-This example consists of 3 disconnected triangles that are constrained by MPCs along their overlapping edges and corners. All three triangles have overlapping corners at the bottom center (origin), where constraining with an MPC becomes more interesting.
+This example consists of 3 disconnected triangles that are constrained by MPCs along their overlapping edges and nodes. All three triangles have overlapping nodes at the bottom center (origin), where constraining with an MPC becomes more interesting.
 
 The following two constraint systems are tested:
-- *connected case*: the corner ($0$) of the main triangle ($e_0$) is the master of the other two ($3$ and $6$) overlapping corners.
-- *disconnected case:* an external point ($18$), that is not part of any element, acts as the master of all 3 overlapping corners ($0$, $3$, and $6$).
+- *connected case*: node ($0$) of the main triangle ($e_0$) is the master of the other two ($3$ and $6$) overlapping nodes.
+- *disconnected case:* an external point ($18$), that is not part of any element, acts as the master of all 3 overlapping nodes ($0$, $3$, and $6$).
 
-In every setup, all MPCs share a common coefficient, with no offsets:
+Each setup has a linear counterpart that consist only of linear triangles. In every case, all MPCs share a common coefficient, with no offsets:
 ```math
 \mathbf{u}_S =
 \begin{bmatrix}
@@ -19,10 +19,110 @@ In every setup, all MPCs share a common coefficient, with no offsets:
 \mathbf{u}_M
 ```
 
-## Connected Case
+Note that a coefficient $c=1$ means that overlapping nodes must have identical displacements, which makes the model identical to a mesh with 3 connected triangles. The hierarchical solver can solve this configuration well, however it runs into trouble when the coefficient $c \neq 1$.
+
+# Connected Case
+
+## $c = 1$
 
 ```bash
-python MainKratos.py --
+python MainKratos.py --mesh consistent_quadratic --mpc-coefficient 1
 ```
 
-## Disconnected Case
+The hierarchical solver needs **11 iterations** (way more than expected `¯\_(ツ)_/¯`) to converge to a relative residual norm of $10^{-6}$ even though **the restricted system matrix is identical to that of the model's linear counterpart**.
+
+<div>
+    <div width=100% style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+        <figure width=45%; style="margin: 1%;">
+            <img alt="restriction operator" src=".readme/consistent_quadratic_restriction_operator_1e0.png" width=100%/>
+        </figure>
+        <figure width=45%; style="margin: 1%;">
+            <img alt="coarse system matrix" src=".readme/consistent_quadratic_coarse_system_matrix_1e0.png"  width=100%/>
+        </figure>
+    </div>
+    <div width=100% style="display: flex; flex-direction: row; align-items: center;">
+        <figcaption style="width: 45%; margin: 1%; text-align: center;">restriction operator</figcaption>
+        <figcaption style="width: 45%; margin: 1%; text-align: center;">coarse system matrix</figcaption>
+    </div>
+</div>
+
+## $c \neq 1$
+
+```bash
+python MainKratos.py --mesh consistent_quadratic --mpc-coefficient 1e-1
+```
+
+The hierarchical solver needs **15 iterations** (almost 50% more than the $c=1$ case) to converge to the same tolerance even though **the restricted system matrix is identical to that of the model's linear counterpart**.
+
+<div>
+    <div width=100% style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+        <figure width=45%; style="margin: 1%;">
+            <img alt="restriction operator" src=".readme/consistent_quadratic_restriction_operator_1e-1.png" width=100%/>
+        </figure>
+        <figure width=45%; style="margin: 1%;">
+            <img alt="coarse system matrix" src=".readme/consistent_quadratic_coarse_system_matrix_1e-1.png"  width=100%/>
+        </figure>
+    </div>
+    <div width=100% style="display: flex; flex-direction: row; align-items: center;">
+        <figcaption style="width: 45%; margin: 1%; text-align: center;">restriction operator</figcaption>
+        <figcaption style="width: 45%; margin: 1%; text-align: center;">coarse system matrix</figcaption>
+    </div>
+</div>
+
+
+# Disconnected Case
+
+
+## $c=1$
+
+```bash
+python MainKratos.py --mesh quadratic --mpc-coefficient 1e0
+```
+
+The hierarchical solver needs **11 iterations** (identical to the connected $c=1$ case) to converge. **The restricted system matrix is identical to that of the model's linear counterpart**.
+
+<div>
+    <div width=100% style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+        <figure width=45%; style="margin: 1%;">
+            <img alt="restriction operator" src=".readme/quadratic_restriction_operator_1e0.png" width=100%/>
+        </figure>
+        <figure width=45%; style="margin: 1%;">
+            <img alt="coarse system matrix" src=".readme/quadratic_coarse_system_matrix_1e0.png"  width=100%/>
+        </figure>
+    </div>
+    <div width=100% style="display: flex; flex-direction: row; align-items: center;">
+        <figcaption style="width: 45%; margin: 1%; text-align: center;">restriction operator</figcaption>
+        <figcaption style="width: 45%; margin: 1%; text-align: center;">coarse system matrix</figcaption>
+    </div>
+</div>
+
+## $c \neq 1$
+
+```bash
+python MainKratos.py --mesh quadratic --mpc-coefficient 1e-1
+```
+
+This is a tricky one that exposes a flaw in the construction of the restriction operator, because **the coarse system matrix is no longer identical to its linear counterpart**. The difference of the two matrices ($K_{linear} - RK_{quadratic}R^T$) is shown below. Unsurprisingly, solving this system takes the longest with **21 iterations**.
+
+<div width=100% style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <div width=100% style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+        <figure width=30%; style="margin: 1%;">
+            <img alt="linear system matrix" src=".readme/linear_system_matrix_filtered.png"  width=100%/>
+        </figure>
+        <figure width=30%; style="margin: 1%;">
+            <img alt="restriction operator" src=".readme/quadratic_restriction_operator_1e-1.png" width=100%/>
+        </figure>
+        <figure width=30%; style="margin: 1%;">
+            <img alt="coarse system matrix" src=".readme/quadratic_coarse_system_matrix_1e-1.png"  width=100%/>
+        </figure>
+    </div>
+    <div width=100% style="display: flex; flex-direction: row; align-items: center;">
+        <figcaption style="width: 30%; margin: 1%; text-align: center;">linear system matrix</figcaption>
+        <figcaption style="width: 30%; margin: 1%; text-align: center;">restriction operator</figcaption>
+        <figcaption style="width: 30%; margin: 1%; text-align: center;">coarse system matrix</figcaption>
+    </div>
+    <div width=100%; style="display: flex; flex-direction: row; align-items: center;">
+        <img alt="coarse difference" src=".readme/coarse_diff_1e-1.png"/>
+    </div>
+    <figcaption style="width: 100%; text-align: center;">coarse difference matrix</figcaption>
+</div>
