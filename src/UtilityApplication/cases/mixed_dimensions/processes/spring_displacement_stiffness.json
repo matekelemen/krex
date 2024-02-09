@@ -1,0 +1,11 @@
+{
+    "python_module": "assign_vector_variable_to_elements_process",
+    "kratos_module": "KratosMultiphysics",
+    "process_name": "AssignVectorVariableToElementsProcess",
+    "Parameters": {
+        "model_part_name": "root.lines",
+        "variable_name": "NODAL_DISPLACEMENT_STIFFNESS",
+        "interval": [0.0, "End"],
+        "value": [1.0, 1.0, 1.0]
+    }
+}

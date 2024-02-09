@@ -1,0 +1,5 @@
+{
+    "Parameters" : {},
+    "python_module" : "flush_streams_process",
+    "process_name" : "FlushStreamsProcess"
+}

@@ -1,0 +1,23 @@
+{
+    "python_module": "assign_vector_variable_process",
+    "kratos_module": "KratosMultiphysics",
+    "process_name": "AssignVectorVariableProcess",
+    "Parameters": {
+        "model_part_name": "root.dirichlet",
+        "variable_name": "ROTATION",
+        "interval": [
+            0.0,
+            "End"
+        ],
+        "constrained": [
+            true,
+            true,
+            false
+        ],
+        "value": [
+            0.0,
+            0.0,
+            null
+        ]
+    }
+}

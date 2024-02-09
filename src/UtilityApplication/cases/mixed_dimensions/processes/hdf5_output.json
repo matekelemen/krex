@@ -1,0 +1,18 @@
+{
+    "kratos_module" : "KratosMultiphysics.HDF5Application",
+    "python_module" : "single_mesh_temporal_output_process",
+    "process_name" : "SingleMeshTemporalOutputProcess",
+    "Parameters" : {
+        "model_part_name" : "root",
+        "file_settings" : {
+            "file_name" : "structure_<time>.h5",
+            "file_access_mode" : "truncate"
+        },
+        "nodal_solution_step_data_settings" : {
+            "list_of_variables" : ["DISPLACEMENT", "REACTION"]
+        },
+        "condition_data_value_settings" : {
+            "list_of_variables" : ["POINT_LOAD"]
+        }
+    }
+}

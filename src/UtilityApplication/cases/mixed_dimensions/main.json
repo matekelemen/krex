@@ -1,0 +1,46 @@
+{
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
+    "problem_data": {
+        "problem_name": "mixed_dimensions",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 20.0
+    },
+    "solver_settings": {
+        "solver_type": "dynamic",
+        "model_part_name": "root",
+        "time_stepping": {
+            "time_step": 1e-1
+        },
+        "analysis_type": "non_linear",
+        "echo_level": 0,
+        "rotation_dofs": true, // <== required by SpringDamperElement
+        "volumetric_strain_dofs": false,
+        "domain_size": 2,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "meshes/1_spring"
+        },
+        "material_import_settings": {"materials_filename": "materials.json"},
+        "linear_solver_settings" : {"@include_json" : "linear_solvers/cg.json"}
+    },
+    "processes": {
+        "constraints_process_list": [
+            {"@include_json" : "processes/displacement_dirichlet_condition.json"},
+            {"@include_json" : "processes/rotation_dirichlet_condition.json"}
+        ],
+        "loads_process_list": [
+            {"@include_json" : "processes/neumann_condition.json"}
+        ],
+        "list_other_processes" : [
+            {"@include_json" : "processes/spring_displacement_stiffness.json"},
+            {"@include_json" : "processes/spring_rotation_stiffness.json"},
+            {"@include_json" : "processes/flush_streams.json"}
+        ]
+    },
+    "output_processes": {
+        "vtk_output" : [{"@include_json" : "processes/vtk_output.json"}]
+        //,"hdf5_output": [{"@include_json" : "processes/hdf5_output.json"}]
+    }
+}

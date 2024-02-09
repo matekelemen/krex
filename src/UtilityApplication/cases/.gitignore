@@ -2,3 +2,4 @@
 !hierarchical_solver_tetrahedra
 !hierarchical_solver_multislave
 !hierarchical_solver_multimaster
+!mixed_dimensions

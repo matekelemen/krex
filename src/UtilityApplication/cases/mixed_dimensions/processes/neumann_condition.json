@@ -1,0 +1,19 @@
+{
+    "python_module": "assign_vector_by_direction_to_condition_process",
+    "kratos_module": "KratosMultiphysics",
+    "process_name": "AssignVectorByDirectionToConditionProcess",
+    "Parameters": {
+        "model_part_name": "root.neumann",
+        "variable_name": "POINT_LOAD",
+        "interval": [
+            0.0,
+            "End"
+        ],
+        "modulus": 2e-1,
+        "direction": [
+            "sin(t)",
+            "cos(t)",
+             0.0
+        ]
+    }
+}

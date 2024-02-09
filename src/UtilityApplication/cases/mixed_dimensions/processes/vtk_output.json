@@ -1,0 +1,26 @@
+{
+    "Parameters": {
+        "condition_data_value_variables": [
+            "POINT_LOAD"
+        ],
+        "element_data_value_variables": [],
+        "output_path": "vtk_output",
+        "gauss_point_variables_extrapolated_to_nodes": [
+            "VON_MISES_STRESS"
+        ],
+        "gauss_point_variables_in_elements": [
+            "VON_MISES_STRESS"
+        ],
+        "model_part_name": "root",
+        "nodal_data_value_variables": [],
+        "nodal_solution_step_data_variables": [
+            "DISPLACEMENT",
+            "REACTION"
+        ],
+        "output_sub_model_parts": false,
+        "save_output_files_in_folder": true
+    },
+    "kratos_module": "KratosMultiphysics",
+    "process_name": "VTKOutputProcess",
+    "python_module": "vtk_output_process"
+}

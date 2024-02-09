@@ -1,0 +1,14 @@
+*
+
+!.gitignore
+!*.py
+!*.json
+
+!linear_solvers
+!linear_solvers/*.json
+
+!meshes
+!meshes/*.mdpa
+
+!processes
+!processes/*.json
