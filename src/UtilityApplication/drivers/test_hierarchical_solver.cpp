@@ -1,11 +1,13 @@
 /// @author Máté Kelemen
 
 // --- Core Includes ---
+#if __has_include("custom_solvers/hierarchical_solver.h")
+#include "custom_solvers/hierarchical_solver.h"
+
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/kratos_application.h"
 #include "geometries/line_2d_3.h"
-#include "custom_solvers/hierarchical_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "spaces/ublas_space.h"
 
@@ -596,3 +598,7 @@ int main(int argc, const char* argv[])
 
     return 0;
 }
+
+#else
+int main() {}
+#endif // __has_include("custom_solvers/hierarchical_solver.h")
