@@ -1,6 +1,8 @@
 *
 
 !.gitignore
+!.gitattributes
+!readme.md
 !*.py
 !*.json
 
@@ -12,3 +14,7 @@
 
 !processes
 !processes/*.json
+
+!.readme
+!.readme/*.png
+!.readme/*.mp4
