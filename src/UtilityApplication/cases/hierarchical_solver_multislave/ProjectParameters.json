@@ -143,7 +143,19 @@
                 }
             }
         ],
-        "list_other_processes": []
+        "list_other_processes": [
+            {
+                "Parameters" : {
+                    "model_part_name" : "root",
+                    "interactive" : false,
+                    "stage" : "FinalizeSolutionStep",
+                    "configuration" : "Initial",
+                    "restriction_operator" : "restriction_operator.mm"
+                },
+                "python_module" : "plot_restriction_process",
+                "process_name" : "PlotRestrictionProcess"
+            }
+        ]
     },
     "output_processes": {
         "hdf5_output": [
