@@ -2,30 +2,30 @@ Begin Properties 0
 End Properties
 
 Begin Nodes
-    1 0 0 0
-    2 1 1 0
-    3 -1 1 0
-    4 0 0 0
-    5 1 0 0
-    6 1 1 0
-    7 0 0 0
-    8 -1 1 0
-    9 -1 0 0
-    10 0.5 0.5 0
-    11 0 1 0
-    12 -0.5 0.5 0
-    14 0.5 0 0
-    15 1 0.5 0
-    16 0.5 0.5 0
-    17 -0.5 0.5 0
-    18 -1 0.5 0
-    19 -0.5 0 0
+     1    0    0    0
+     2   11   11    0
+     3  -11   11    0
+     4    1    0    0
+     5   11    0    0
+     6   11   10    0
+     7   -1    0    0
+     8  -11   10    0
+     9  -11    0    0
+    10  5.5  5.5    0
+    11    0   11    0
+    12 -5.5  5.5    0
+    13    6    0    0
+    14   11    5    0
+    15    6    5    0
+    16   -6    5    0
+    17  -11    5    0
+    18   -6    0    0
 End Nodes
 
 Begin Elements SmallDisplacementElement2D6N
     1 0 1 2 3 10 11 12
-    2 0 4 5 6 14 15 16
-    3 0 7 8 9 17 18 19
+    2 0 4 5 6 13 14 15
+    3 0 7 8 9 16 17 18
 End Elements
 
 Begin Conditions PointLoadCondition2D1N
@@ -41,12 +41,12 @@ Begin SubModelPart quadratic_nodes
         10
         11
         12
+        13
         14
         15
         16
         17
         18
-        19
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -211,7 +211,7 @@ Begin SubModelPart slave_3
     Begin SubModelPartTables
     End SubModelPartTables
     Begin SubModelPartNodes
-        16
+        15
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -239,11 +239,10 @@ Begin SubModelPart slave_4
     Begin SubModelPartTables
     End SubModelPartTables
     Begin SubModelPartNodes
-        17
+        16
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-

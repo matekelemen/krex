@@ -13,6 +13,7 @@
 !meshes/consistent_quadratic.mdpa
 
 !rbe1_process.py
+!plot_restriction_process.py
 
 !solvers
 !solvers/*.json

@@ -8,6 +8,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_application.h"
 #include "geometries/line_2d_3.h"
+#include "custom_solvers/hierarchical_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "spaces/ublas_space.h"
 

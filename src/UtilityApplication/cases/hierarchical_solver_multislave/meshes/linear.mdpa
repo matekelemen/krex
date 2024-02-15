@@ -2,47 +2,47 @@ Begin Properties 0
 End Properties
 
 Begin Nodes
-    1 0 0 0
-    2 1 1 0
-    3 -1 1 0
-    4 0 0 0
-    5 1 0 0
-    6 1 1 0
-    7 0 0 0
-    8 -1 1 0
-    9 -1 0 0
-    20 0 -1 0
+     1   0   0   0
+     2  11  11   0
+     3 -11  11   0
+     4   1   0   0
+     5  11   0   0
+     6  11  10   0
+     7  -1   0   0
+     8 -11  10   0
+     9 -11   0   0
+    19   0  -5   0
 End Nodes
 
-Begin Elements	SmallDisplacementElement2D3N
+Begin Elements SmallDisplacementElement2D3N
     1 0 1 2 3
     2 0 4 5 6
     3 0 7 8 9
 End Elements
 
 Begin Conditions PointLoadCondition2D1N
-    1 0 20
+    1 0 19
 End Conditions
 
-Begin SubModelPart	quadratic_nodes
-	Begin SubModelPartData
-	End SubModelPartData
-	Begin SubModelPartTables
-	End SubModelPartTables
-	Begin SubModelPartNodes
-	End SubModelPartNodes
-	Begin SubModelPartElements
-	End SubModelPartElements
-	Begin SubModelPartConditions
-	End SubModelPartConditions
+Begin SubModelPart quadratic_nodes
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart	linear_nodes
-	Begin SubModelPartData
-	End SubModelPartData
-	Begin SubModelPartTables
-	End SubModelPartTables
-	Begin SubModelPartNodes
+Begin SubModelPart linear_nodes
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartTables
+    End SubModelPartTables
+    Begin SubModelPartNodes
         1
         2
         3
@@ -52,11 +52,11 @@ Begin SubModelPart	linear_nodes
         7
         8
         9
-	End SubModelPartNodes
-	Begin SubModelPartElements
-	End SubModelPartElements
-	Begin SubModelPartConditions
-	End SubModelPartConditions
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart load
@@ -65,7 +65,7 @@ Begin SubModelPart load
     Begin SubModelPartTables
     End SubModelPartTables
     Begin SubModelPartNodes
-        20
+        19
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -95,7 +95,7 @@ Begin SubModelPart master_0
     Begin SubModelPartTables
     End SubModelPartTables
     Begin SubModelPartNodes
-        20
+        19
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements

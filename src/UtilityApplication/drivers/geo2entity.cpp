@@ -137,6 +137,19 @@ int main(int argc, const char** argv)
     // Remove geometries
     ClearGeometries(r_root);
 
+    // Create point conditions
+    const Kratos::Condition& r_point_load_condition = Kratos::KratosComponents<Kratos::Condition>::Get("PointLoadCondition3D1N");
+    std::size_t condition_id = r_root.Conditions().empty() ? 0ul
+                               : std::max_element(r_root.Conditions().begin(),
+                                                  r_root.Conditions().end(),
+                                                  [](const auto& rLeft, const auto& rRight){return rLeft.Id() < rRight.Id();})->Id();
+    for (std::string model_part_name : std::vector<std::string> {{"top", "bottom", "left", "rear", "top_90", "top_40", "top_10"}}) {
+        Kratos::ModelPart& r_model_part = r_root.GetSubModelPart(model_part_name);
+        for (auto it_node=r_model_part.Nodes().ptr_begin(); it_node!=r_model_part.Nodes().ptr_end(); ++it_node) {
+            r_model_part.AddCondition(r_point_load_condition.Create(++condition_id, Kratos::Condition::NodesArrayType {{*it_node}}, p_properties));
+        }
+    }
+
     try {
         p_target_io->Write(r_root);
     } catch (std::exception& rException) {

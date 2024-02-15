@@ -13,5 +13,5 @@ for linear_case, quadratic_case in zip(("linear_mesh_standalone_amgcl_raw_solver
     right = scipy.io.mmread(script_directory / quadratic_case / "coarse_system_matrix.mm")
     result = left - right
     scipy.io.mmwrite(script_directory / quadratic_case / "diff",
-                    result,
-                    symmetry = "general")
+                     result,
+                     symmetry = "general")

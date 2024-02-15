@@ -34,7 +34,7 @@
         "volumetric_strain_dofs": false,
         "builder_and_solver_settings" : {
             "advanced_settings" : {
-                "diagonal_values_for_dirichlet_dofs" : "no_scaling"
+                "diagonal_values_for_dirichlet_dofs" : "use_diagonal_norm"
             }
         },
         "linear_solver_settings" : {
@@ -143,7 +143,8 @@
                 }
             }
         ],
-        "list_other_processes": []
+        "list_other_processes": [
+        ]
     },
     "output_processes": {
         "hdf5_output": [

@@ -12,8 +12,16 @@
 !src
 !src/*.cpp
 
+!bindings
+!bindings/*.hpp
+!bindings/*.cpp
+
 !cases
 !cases.gitignore
+
+!tests
+!tests/*.cpp
+!tests/*.py
 
 !scripts
 !scripts/*.sh
