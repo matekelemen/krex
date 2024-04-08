@@ -66,7 +66,7 @@ int main()
     const auto begin = std::chrono::system_clock::now();
     SparseMatrixMultiplicationUtility::MatrixMultiplication(left, right, result);
     KRATOS_INFO("Matrix product duration")
-        << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - begin).count()
+        << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - begin).count() << " ms"
         << (result.nnz() == 0 ? " " : "\n"); // <== dummy line to use the result
 
     return 0;
