@@ -144,9 +144,11 @@ int main(int argc, const char** argv)
                                                   r_root.Conditions().end(),
                                                   [](const auto& rLeft, const auto& rRight){return rLeft.Id() < rRight.Id();})->Id();
     for (std::string model_part_name : std::vector<std::string> {{"top", "bottom", "left", "rear", "top_90", "top_40", "top_10"}}) {
-        Kratos::ModelPart& r_model_part = r_root.GetSubModelPart(model_part_name);
-        for (auto it_node=r_model_part.Nodes().ptr_begin(); it_node!=r_model_part.Nodes().ptr_end(); ++it_node) {
-            r_model_part.AddCondition(r_point_load_condition.Create(++condition_id, Kratos::Condition::NodesArrayType {{*it_node}}, p_properties));
+        if (r_root.HasSubModelPart(model_part_name)) {
+            Kratos::ModelPart& r_model_part = r_root.GetSubModelPart(model_part_name);
+            for (auto it_node=r_model_part.Nodes().ptr_begin(); it_node!=r_model_part.Nodes().ptr_end(); ++it_node) {
+                r_model_part.AddCondition(r_point_load_condition.Create(++condition_id, Kratos::Condition::NodesArrayType {{*it_node}}, p_properties));
+            }
         }
     }
 
