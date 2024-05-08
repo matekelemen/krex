@@ -1,5 +1,6 @@
 // --- Core Includes ---
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "spaces/ublas_space.h"
 
 // --- STL Includes ---
 #include <filesystem>
