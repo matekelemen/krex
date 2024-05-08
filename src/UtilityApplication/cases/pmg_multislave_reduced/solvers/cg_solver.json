@@ -1,0 +1,5 @@
+{
+	"solver_type" : "cg",
+	"max_iteration" : 150,
+	"tolerance" : 2e-1
+}

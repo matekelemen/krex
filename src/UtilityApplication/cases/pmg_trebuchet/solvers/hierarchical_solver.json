@@ -1,0 +1,13 @@
+{
+    "solver_type": "hierarchical",
+    "verbosity": 1,
+    "max_iterations": 30,
+    "tolerance" : 1e-6,
+    "pre_smoother_settings" : null,
+    "coarse_solver_settings" : {
+        "@include_json" : "solvers/pardiso_solver.json"
+    },
+    "post_smoother_settings": {
+        "@include_json" : "solvers/gauss_seidel_forward.json"
+    }
+}

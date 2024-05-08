@@ -1,0 +1,120 @@
+{
+    "problem_data": {
+        "problem_name": "trebuchet_arm",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solver_type": "Static",
+        "model_part_name": "root",
+        "domain_size": 3,
+        "echo_level": 1,
+        "analysis_type": "linear",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename" : "meshes/quadratic"
+        },
+        "material_import_settings": {
+            "materials_filename": "materials.json"
+        },
+        "line_search": false,
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 1e-4,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 1e-4,
+        "residual_absolute_tolerance": 1e-9,
+        "use_old_stiffness_in_first_iteration": false,
+        "volumetric_strain_dofs": false,
+        "rotation_dofs": false,
+        "builder_and_solver_settings" : {
+            "advanced_settings" : {
+                "diagonal_values_for_dirichlet_dofs" : "use_diagonal_norm"
+            }
+        },
+        "linear_solver_settings" : {
+            "@include_json" : "solvers/hierarchical_solver.json"
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.main_shaft",
+                    "variable_name": "DISPLACEMENT",
+                    "interval": [0.0, "End"],
+                    "constrained": [true, true, true],
+                    "value": [0.0, 0.0, 0.0]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "model_part_name": "root.drive_screw_hole",
+                    "variable_name": "POINT_LOAD",
+                    "interval": [0.0, "End"],
+                    "modulus": 1500,
+                    "direction": [-1.0, 1.0, 0.0]
+                }
+            }
+        ],
+        "list_other_processes": [
+            {
+                "python_module" : "make_point_load_conditions_process",
+                "process_name" : "MakePointLoadConditionsProcess",
+                "Parameters" : {
+                    "model_part_name" : "root.drive_screw_hole"
+                }
+            },
+            {
+                "python_module" : "KratosMultiphysics.integration_values_extrapolation_to_nodes_process",
+                "process_name" : "IntegrationValuesExtrapolationToNodesProcess",
+                "Parameters" : {
+                    "model_part_name"            : "root",
+                    "list_of_variables"          : ["VON_MISES_STRESS"],
+                    "extrapolate_non_historical" : true
+                }
+            }
+        ]
+    },
+    "output_processes": {
+        "hdf5_output": [
+            {
+                "kratos_module" : "KratosMultiphysics.HDF5Application",
+                "python_module" : "single_mesh_temporal_output_process",
+                "process_name" : "SingleMeshTemporalOutputProcess",
+                "Parameters" : {
+                    "model_part_name" : "root",
+                    "file_settings" : {
+                        "file_name" : "structure_<time>.h5",
+                        "file_access_mode" : "truncate"
+                    },
+                    "nodal_solution_step_data_settings" : {
+                        "list_of_variables" : ["DISPLACEMENT", "REACTION"]
+                    },
+                    "nodal_data_value_settings" : {
+                        "list_of_variables": ["VON_MISES_STRESS"]
+                    },
+                    "nodal_flag_value_settings" : {
+                        "list_of_variables" : ["MASTER", "SLAVE"]
+                    },
+                    "condition_data_value_settings" : {
+                        "list_of_variables" : ["POINT_LOAD"]
+                    }
+                }
+            }
+        ]
+    },
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
+}

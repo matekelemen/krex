@@ -1,0 +1,6 @@
+meshes/supersonic_trebuchet_mk2.zip filter=lfs diff=lfs merge=lfs -text
+meshes/trebuchet_arm_explode.stl filter=lfs diff=lfs merge=lfs -text
+meshes/linear.mdpa filter=lfs diff=lfs merge=lfs -text
+meshes/quadratic.mdpa filter=lfs diff=lfs merge=lfs -text
+meshes/trebuchet_arm.hdf filter=lfs diff=lfs merge=lfs -text
+.readme/trebuchet_arm_explode.hdf filter=lfs diff=lfs merge=lfs -text

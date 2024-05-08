@@ -1,0 +1,7 @@
+{
+	"solver_type" : "cg",
+	"max_iteration" : 500,
+	"tolerance" : 2e-1,
+    "preconditioner_type" : "diagonal",
+    "scaling" : false
+}

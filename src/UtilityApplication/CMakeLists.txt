@@ -1,5 +1,10 @@
 project(Utility CXX)
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MedApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/HDF5Application)
+
 set(application_core_name "${PROJECT_NAME}Core")
 set(application_name "${PROJECT_NAME}Application")
 set(module_name Kratos${application_name})

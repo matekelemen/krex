@@ -1,6 +1,8 @@
-!hierarchical_solver_cube
-!hierarchical_solver_triangles
-!hierarchical_solver_tetrahedra
-!hierarchical_solver_multislave
-!hierarchical_solver_multimaster
+!pmg_cube
+!pmg_multimaster
+!pmg_multimaster_external_slave
+!pmg_multimaster_single_path
+!pmg_multislave
+!pmg_multislave_reduced
+!pmg_trebuchet
 !mixed_dimensions

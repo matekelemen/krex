@@ -1,0 +1,5 @@
+{
+    "solver_type" : "jacobi",
+    "max_iterations" : 10,
+    "relaxation" : 0.67
+}

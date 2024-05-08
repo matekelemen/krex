@@ -163,7 +163,7 @@ if [ $clean -ne 0 ]; then
 fi
 
 # Check whether intel mkl is available
-if [[ -f "/opt/intel/oneapi/setvars.sh" && "$compiler_family" -ne "clang" ]]; then
+if [ -f "/opt/intel/oneapi/setvars.sh" ] && [ "$compiler_family" != "clang" ]; then
     source "/opt/intel/oneapi/setvars.sh"
     mkl_flag="-DUSE_EIGEN_MKL:BOOl=ON"
 fi
