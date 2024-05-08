@@ -50,9 +50,8 @@ void MDPAModelPartIO::Read(Ref<ModelPart> rTarget) const
 
 void MDPAModelPartIO::Write(Ref<const ModelPart> rSource)
 {
-    std::cout << "writing MDPA to " << mpImpl->mFilePath << std::endl;
     Ref<ModelPart> omfg = const_cast<Ref<ModelPart>>(rSource);
-    Kratos::ModelPartIO(mpImpl->mFilePath, IO::WRITE).WriteModelPart(omfg);
+    Kratos::ModelPartIO(mpImpl->mFilePath, IO::WRITE | IO::SCIENTIFIC_PRECISION).WriteModelPart(omfg);
 }
 
 
