@@ -82,9 +82,9 @@ def Avg(values: "list[float]") -> typing.Optional[float]:
 
 
 datasets: "dict[str,Dataset]" = {
-    "node_count" : Dataset(R".*Number of Nodes +: ([0-9]+)", Max),
-    "element_count" : Dataset(R".*Number of Elements +: ([0-9]+)", Max),
-    "condition_count" : Dataset(R".*Number of Conditions +: ([0-9]+)", Max),
+    "nodes" : Dataset(R".*Number of Nodes +: ([0-9]+)", Max),
+    "elements" : Dataset(R".*Number of Elements +: ([0-9]+)", Max),
+    "conditions" : Dataset(R".*Number of Conditions +: ([0-9]+)", Max),
     "read_time" : Dataset(R""".*Reading file ".*" took (""" + time_pattern + R""") \[s\]""", Max),
     "allocation_time" : Dataset(f".*System Construction Time: ({time_pattern})", Max),
     "assembly_time" : Dataset(f"ResidualBasedBlockBuilderAndSolver: (?:Build time: ({time_pattern})|Constraints build time: ({time_pattern}))", Sum),
@@ -167,7 +167,7 @@ parser.add_argument("-x",
                     dest = "x",
                     type = str,
                     choices = dataset_names,
-                    default = "node_count")
+                    default = "nodes")
 parser.add_argument("-y",
                     dest = "y",
                     type = str,
@@ -273,17 +273,6 @@ for i_group, ((group_key, cases), color) in enumerate(zip(sorted(groups.items(),
               markersize=12,
               linestyle="",
               label = f"{arguments.group}: {group_key}")
-
-    slope, intercept = numpy.polyfit(x, y, 1, w = numpy.sqrt(numpy.log(x)))
-
-    if 0 < intercept:
-        fit = lambda v: intercept + slope * v
-        samples = numpy.linspace(min(x), max(x), num = 2)
-
-        axes.plot(samples,
-                fit(samples),
-                color = [c / 255.0 for c in color][:3] + [0.375],
-                linestyle = LINE_STYLES["dashdot"])
 
 label_font_dict = {"fontsize" : FONTS["AxesLabelMajor"].get_size(),
                    "family" : FONTS["AxesLabelMajor"].get_family(),
