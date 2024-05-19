@@ -1,11 +1,13 @@
 # --- External Imports ---
-from matplotlib import pyplot
+from matplotlib import pyplot, font_manager
 
 # --- STD Imports ---
 import pathlib
 import argparse
 import re
 import typing
+from collections import OrderedDict
+import itertools
 
 
 script_dir = pathlib.Path(__file__).absolute().parent
@@ -62,7 +64,7 @@ datasets: "dict[str,Dataset]" = {
     "read_time" : Dataset(R""".*Reading file ".*" took """ + float_pattern + R""" \[s\]""", Max),
     "allocation_time" : Dataset(f".*System Construction Time: {float_pattern}", Max),
     "assembly_time" : Dataset(f"ResidualBasedBlockBuilderAndSolver: (?:Build time: {float_pattern}|Constraints build time: {float_pattern})", Sum),
-    "solution_time" : Dataset(f".*System solve time: {float_pattern}", Sum)
+    "solution_time" : Dataset(f".*System solve time: {float_pattern}", Avg)
 }
 dataset_names: "list[str]" = list(datasets.keys())
 
@@ -78,7 +80,7 @@ class Case:
 
         self.__order: int = 1 if m.group(1) == "linear_" else 2
         self.__level: int = int(m.group(2))
-        self.__solver: str = "amg" if m.group(3) == "standalone_amgcl_raw_solver" else "pmg"
+        self.__solver: str = "pmg" if m.group(3) == "hierarchical_solver" else "amg"
         self.__constrained_group: str = m.group(4)
         self.__datasets: "dict[str,Dataset]" = {name : dataset.Clone() for name, dataset in datasets.items()}
 
@@ -152,36 +154,123 @@ parser.add_argument("--filter",
                     nargs = "*",
                     type=Filter,
                     default = [])
+parser.add_argument("--group",
+                    dest = "group",
+                    choices = ["all", "order", "level", "solver", "constrained_group"],
+                    default = "all")
 arguments = parser.parse_args()
 
 
-cases: "dict[str,Case]" = {}
+groups: "dict[typing.Union[str,float],list[Case]]" = {}
 for path in script_dir.glob("*/log"):
     case_name = path.parent.name
     case = Case(case_name)
 
-    include = True
-    for filter in arguments.filters:
-        if filter(case):
-            include = False
-            break
+    include = True if not arguments.filters else all(filter(case) for filter in arguments.filters)
 
     if include:
-        cases[case_name] = case
         with open(path, "r") as file:
             case.Parse(file)
 
-x: "list[float]" = [case.datasets[arguments.x].value for case in cases.values()]
-y: "list[float]" = [case.datasets[arguments.y].value for case in cases.values()]
+        if arguments.group == "all":
+            groups.setdefault("all", []).append(case)
+        else:
+            key = getattr(case, arguments.group)
+            groups.setdefault(key, []).append(case)
+
+
+
+COLORS = OrderedDict([
+    ("TUMBlue",         (  0,  82, 147, 255)),
+    ("TUMOrange",       (227, 114,  34, 255)),
+    ("TUMGreen",        (162, 173,   0, 255)),
+    ("TUMLightestBlue", (152, 198, 234, 255)),
+    ("TUMGray",         (128, 128, 128, 255)),
+    ("TUMWebBlue",      ( 48, 112, 179, 255)),
+    ("TUMLightGray",    (218, 215, 203, 255)),
+    ("TUMLightBlue",    (  0, 101, 189, 255)),
+    ("TUMLighterBlue",  (100, 160, 200, 255)),
+    ("TumLightestGray", (204, 204, 204, 255)),
+    ("GridLineMajor",   (218, 215, 203, 128)),
+    ("GridLineMinor",   (204, 204, 204, 128))
+])
+
+
+LINE_STYLES = OrderedDict([
+    ("solid",           "solid"),
+    ("dashed",          "dashed"),
+    ("dashdot",         "dashdot"),
+    ("dashdotdot",      (0, (3, 2, 1, 2, 1, 2))),
+    ("dotted",          "dotted"),
+    ("GridLineMajor",   "solid"),
+    ("GridLineMinor",   "dotted")
+])
+
+
+LINE_WIDTHS = OrderedDict([
+    ("Icon",            4),
+    ("GridLineMajor",   1.5),
+    ("GridLineMinor",   1.0)
+])
+
+
+MARKERS = [
+    "+",
+    "x",
+    "d",
+    "2",
+    "4",
+    "h",
+    R"$\alpha$"
+]
+
+
+FONTS = {
+    "Title"             : font_manager.FontProperties(family = "sans-serif",
+                                                      size = 18),
+    "AxesLabelMajor"    : font_manager.FontProperties(family = "sans-serif",
+                                                      size = 14),
+    "Legend"            : font_manager.FontProperties(family = "sans-serif",
+                                                      size = 14),
+    "AxesLabelMinor"    : font_manager.FontProperties(family = "sans-serif",
+                                                      size = 12)
+}
+
 
 figure, axes = pyplot.subplots()
-axes.plot(x,
-          y,
-          "+")
-axes.set_xlabel(arguments.x)
-axes.set_ylabel(arguments.y)
+
+for i_group, ((group_key, cases), color) in enumerate(zip(sorted(groups.items(), key = lambda pair: pair[0]), COLORS.values())):
+    x: "list[float]" = [case.datasets[arguments.x].value for case in cases]
+    y: "list[float]" = [case.datasets[arguments.y].value for case in cases]
+    axes.plot(x,
+              y,
+              color = [c / 255.0 for c in color],
+              marker = MARKERS[i_group],
+              markersize=12,
+              linestyle="",
+              label = f"{arguments.group}: {group_key}")
+
+label_font_dict = {"fontsize" : FONTS["AxesLabelMajor"].get_size(),
+                   "family" : FONTS["AxesLabelMajor"].get_family(),
+                   "fontstyle" : FONTS["AxesLabelMajor"].get_style()}
+axes.set_xlabel(arguments.x, fontdict = label_font_dict)
+axes.set_ylabel(arguments.y, fontdict = label_font_dict)
 axes.set_xscale("log")
 axes.set_yscale("log")
-axes.grid()
+
+axes.grid(which = "major",
+          color = [v / 255.0 for v in COLORS["GridLineMajor"]],
+          linestyle = LINE_STYLES["GridLineMajor"],
+          linewidth = LINE_WIDTHS["GridLineMajor"])
+
+axes.grid(which = "minor",
+          color = [v / 255.0 for v in COLORS["GridLineMinor"]],
+          linestyle = LINE_STYLES["GridLineMinor"],
+          linewidth = LINE_WIDTHS["GridLineMinor"])
+
+for label in itertools.chain(axes.get_xticklabels(), axes.get_yticklabels()):
+    label.set_fontproperties(FONTS["AxesLabelMinor"])
+
+axes.legend()
 
 figure.savefig("plot_performance.png")
