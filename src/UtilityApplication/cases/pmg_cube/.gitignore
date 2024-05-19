@@ -13,6 +13,7 @@
 
 !make_multifreedom_constraints_process.py
 !make_point_load_conditions_process.py
+!plot_performance.py
 
 !solvers
 !solvers/*.json
