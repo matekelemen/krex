@@ -1,5 +1,6 @@
 # --- External Imports ---
 from matplotlib import pyplot, font_manager
+import numpy
 
 # --- STD Imports ---
 import pathlib
@@ -263,8 +264,8 @@ FONTS = {
 figure, axes = pyplot.subplots()
 
 for i_group, ((group_key, cases), color) in enumerate(zip(sorted(groups.items(), key = lambda pair: pair[0]), COLORS.values())):
-    x: "list[float]" = [case.datasets[arguments.x].value for case in cases]
-    y: "list[float]" = [case.datasets[arguments.y].value for case in cases]
+    x = numpy.array([case.datasets[arguments.x].value for case in cases])
+    y = numpy.array([case.datasets[arguments.y].value for case in cases])
     axes.plot(x,
               y,
               color = [c / 255.0 for c in color],
@@ -273,11 +274,22 @@ for i_group, ((group_key, cases), color) in enumerate(zip(sorted(groups.items(),
               linestyle="",
               label = f"{arguments.group}: {group_key}")
 
+    slope, intercept = numpy.polyfit(x, y, 1, w = numpy.sqrt(numpy.log(x)))
+
+    if 0 < intercept:
+        fit = lambda v: intercept + slope * v
+        samples = numpy.linspace(min(x), max(x), num = 2)
+
+        axes.plot(samples,
+                fit(samples),
+                color = [c / 255.0 for c in color][:3] + [0.375],
+                linestyle = LINE_STYLES["dashdot"])
+
 label_font_dict = {"fontsize" : FONTS["AxesLabelMajor"].get_size(),
                    "family" : FONTS["AxesLabelMajor"].get_family(),
                    "fontstyle" : FONTS["AxesLabelMajor"].get_style()}
-axes.set_xlabel(arguments.x, fontdict = label_font_dict)
-axes.set_ylabel(arguments.y, fontdict = label_font_dict)
+axes.set_xlabel(arguments.x.replace("_", " "), fontdict = label_font_dict)
+axes.set_ylabel(arguments.y.replace("_", " "), fontdict = label_font_dict)
 axes.set_xscale("log")
 axes.set_yscale("log")
 
