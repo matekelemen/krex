@@ -13,6 +13,16 @@ import itertools
 script_dir = pathlib.Path(__file__).absolute().parent
 
 
+float_pattern_string = R"-?(?:(?:(?:[1-9][0-9]*)(?:\.[0-9]*)?)|(?:0(?:\.[0-9]*)?))(?:[eE][\+-]?[0-9]+)?"
+float_pattern = re.compile(f"({float_pattern_string})")
+hour_pattern = f"{float_pattern_string} " + R"\[h\] "
+minute_pattern = f"{float_pattern_string} " + R"\[m\] "
+second_pattern = f"{float_pattern_string} " + R"\[s\]"
+time_pattern = f"(?:{hour_pattern})?(?:{minute_pattern})?{second_pattern}"
+partitioned_time_pattern = f"({hour_pattern})?({minute_pattern})?({second_pattern})"
+float_or_time_pattern = re.compile(f"(^{float_pattern_string}$)|(^{partitioned_time_pattern}$)")
+
+
 class Dataset:
 
     def __init__(self, pattern: str, reduction: typing.Callable[[list[float]],typing.Optional[float]]) -> None:
@@ -25,7 +35,7 @@ class Dataset:
     def Parse(self, line: str) -> bool:
         m = self.__pattern.match(line)
         if m:
-            value = self.__reduction([float(v) for v in m.groups() if v])
+            value = self.__reduction([self.__ToFloat(v) for v in m.groups() if v])
             if value is not None:
                 self.__values.append(value)
             return True
@@ -41,6 +51,22 @@ class Dataset:
         return self.__reduction(self.__values)
 
 
+    @staticmethod
+    def __ToFloat(value: str) -> float:
+        m = float_or_time_pattern.match(value)
+        if m.group(1):
+            return float(m.group(1))
+        else:
+            time = 0.0
+            if m.group(3):
+                time += 3600.0 * float(float_pattern.match(m.group(3)).group(1))
+            if m.group(4):
+                time += 60.0 * float(float_pattern.match(m.group(4)).group(1))
+            if m.group(5):
+                time += float(float_pattern.match(m.group(5)).group(1))
+            return time
+
+
 
 def Max(values: "list[float]") -> typing.Optional[float]:
     return max(values) if values else None
@@ -54,17 +80,14 @@ def Avg(values: "list[float]") -> typing.Optional[float]:
     return (sum(values, 0.0) / len(values)) if values else None
 
 
-
-float_pattern = R"(-?(?:(?:(?:[1-9][0-9]*)(?:\.[0-9]*)?)|(?:0(?:\.[0-9]*)?))(?:[eE][\+-]?[0-9]+)?)"
-
 datasets: "dict[str,Dataset]" = {
     "node_count" : Dataset(R".*Number of Nodes +: ([0-9]+)", Max),
     "element_count" : Dataset(R".*Number of Elements +: ([0-9]+)", Max),
     "condition_count" : Dataset(R".*Number of Conditions +: ([0-9]+)", Max),
-    "read_time" : Dataset(R""".*Reading file ".*" took """ + float_pattern + R""" \[s\]""", Max),
-    "allocation_time" : Dataset(f".*System Construction Time: {float_pattern}", Max),
-    "assembly_time" : Dataset(f"ResidualBasedBlockBuilderAndSolver: (?:Build time: {float_pattern}|Constraints build time: {float_pattern})", Sum),
-    "solution_time" : Dataset(f".*System solve time: {float_pattern}", Avg)
+    "read_time" : Dataset(R""".*Reading file ".*" took (""" + time_pattern + R""") \[s\]""", Max),
+    "allocation_time" : Dataset(f".*System Construction Time: ({time_pattern})", Max),
+    "assembly_time" : Dataset(f"ResidualBasedBlockBuilderAndSolver: (?:Build time: ({time_pattern})|Constraints build time: ({time_pattern}))", Sum),
+    "solution_time" : Dataset(f".*System solve time: ({time_pattern})", Avg)
 }
 dataset_names: "list[str]" = list(datasets.keys())
 
@@ -162,7 +185,7 @@ arguments = parser.parse_args()
 
 
 groups: "dict[typing.Union[str,float],list[Case]]" = {}
-for path in script_dir.glob("*/log"):
+for path in pathlib.Path(".").glob("*/log"):
     case_name = path.parent.name
     case = Case(case_name)
 
