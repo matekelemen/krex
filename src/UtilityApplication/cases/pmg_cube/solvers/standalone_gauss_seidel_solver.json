@@ -1,0 +1,6 @@
+{
+    "solver_type" : "gauss_seidel",
+    "max_iterations" : 100,
+    "verbosity" : 3,
+    "relaxation" : 1.0
+}

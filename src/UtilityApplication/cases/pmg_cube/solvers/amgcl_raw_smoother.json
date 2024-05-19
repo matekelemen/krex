@@ -1,0 +1,26 @@
+{
+        "solver_type": "amgcl_raw",
+        "verbosity": 1,
+        "tolerance" : 2e-1,
+        "amgcl_settings": {
+            "precond" : {
+                "class" : "amg",
+                "relax" : {
+                    "type" : "ilu0"
+                },
+                "coarsening" : {
+                    "type" : "aggregation",
+                    "aggr" : {
+                        "eps_strong" : 0.08,
+                        "block_size" : 3
+                    }
+                },
+                "coarse_enough" : 333,
+                "npre" : 2,
+                "npost" : 2
+            },
+            "solver" : {
+                "type" : "preonly"
+            }
+        }
+}

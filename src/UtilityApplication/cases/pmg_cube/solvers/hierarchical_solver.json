@@ -1,0 +1,13 @@
+{
+    "solver_type": "hierarchical",
+    "verbosity": 2,
+    "max_iterations": 100,
+    "tolerance" : 1e-6,
+    "pre_smoother_settings" : null,
+    "coarse_solver_settings" : {
+        "@include_json" : "solvers/amgcl_raw_solver.json"
+    },
+    "post_smoother_settings": {
+        "@include_json" : "solvers/gauss_seidel_forward.json"
+    }
+}
