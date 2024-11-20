@@ -13,12 +13,12 @@ Begin Elements SmallDisplacementElement3D4N
 End Elements
 
 Begin Conditions PointLoadCondition3D1N
-    1 0 1
+    1 0 4
 End Conditions
 
 Begin SubModelPart neumann
     Begin SubModelPartNodes
-        1
+        4
     End SubModelPartNodes
     Begin SubModelPartConditions
         1
@@ -27,13 +27,8 @@ End SubModelPart
 
 Begin SubModelPart dirichlet
     Begin SubModelPartNodes
+        1
         2
         3
-    End SubModelPartNodes
-End SubModelPart
-
-Begin SubModelPart surface_sliding_constraint
-    Begin SubModelPartNodes
-        1
     End SubModelPartNodes
 End SubModelPart

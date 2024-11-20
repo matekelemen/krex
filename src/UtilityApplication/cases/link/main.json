@@ -1,7 +1,7 @@
 {
     "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
     "problem_data": {
-        "problem_name": "surface_slide",
+        "problem_name": "link_constraint_3D",
         "parallel_type": "OpenMP",
         "echo_level": 1,
         "start_time": 0.0,
@@ -15,7 +15,8 @@
         "model_part_name": "root",
         "domain_size": 3,
         "echo_level": 1,
-        "analysis_type": "linear",
+        "analysis_type": "non_linear",
+        "max_iteration" : 10,
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename" : "mesh"
@@ -28,10 +29,15 @@
         "displacement_absolute_tolerance": 1e-9,
         "residual_relative_tolerance": 1e-4,
         "residual_absolute_tolerance": 1e-9,
-        "linear_solver_settings": {
-            "solver_type" : "amgcl",
-            "verbosity" : 1
+        "builder_and_solver_settings" : {
+            "use_block_builder" : true,
+            "use_lagrange_BS" : true
         }
+        //,
+        //"linear_solver_settings": {
+        //    "solver_type" : "amgcl",
+        //    "verbosity" : 4
+        //}
     },
     "processes": {
         "constraints_process_list": [
@@ -67,8 +73,8 @@
                     "interval": [
                         0.0, "End"
                     ],
-                    "modulus": 2e-1,
-                    "direction": [0, 0, 1]
+                    "modulus": 5e-2,
+                    "direction": [-1, -1, 1]
                 }
             }
         ],

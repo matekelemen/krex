@@ -50,14 +50,17 @@ try:
 
     figure = pyplot.figure()
     axes = figure.add_subplot(projection = "3d")
-    axes.set_aspect("equal")
 
     # Draw sphere
     u, v = numpy.mgrid[0:2*numpy.pi:20j, 0:numpy.pi:10j]
     x = numpy.cos(u)*numpy.sin(v)
     y = numpy.sin(u)*numpy.sin(v)
     z = numpy.cos(v)
-    axes.plot_wireframe(x, y, z, color="r")
+    axes.plot_wireframe(x,
+                        y,
+                        z,
+                        color="#aaaaaa55",
+                        linewidth = 2)
 
     # Define the index buffer that turns the tetrahedron
     # into a triangulated surface matplotlib expects.
@@ -86,6 +89,7 @@ try:
                  "deformed configuration",
                  "constraint surface"])
 
+    axes.set_aspect("equal")
     pyplot.show()
 
 except ImportError as _:
