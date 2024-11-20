@@ -1,0 +1,82 @@
+{
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
+    "problem_data": {
+        "problem_name": "link_constraint_2D",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solver_type": "Static",
+        "model_part_name": "root",
+        "domain_size": 2,
+        "echo_level": 1,
+        "analysis_type": "non_linear",
+        "max_iteration" : 10,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename" : "mesh"
+        },
+        "material_import_settings": {
+            "materials_filename": "materials.json"
+        },
+        "convergence_criterion": "displacement_criterion",
+        "displacement_relative_tolerance": 1e-4,
+        "displacement_absolute_tolerance": 1e-9
+        ,
+        "builder_and_solver_settings" : {
+            "use_block_builder" : true,
+            "use_lagrange_BS" : false
+        }
+        ,
+        "linear_solver_settings": {
+            "solver_type" : "LinearSolversApplication.sparse_lu"
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.dirichlet",
+                    "variable_name": "DISPLACEMENT",
+                    "interval": [0.0, "End"],
+                    "constrained": [true, true, false],
+                    "value": [0.0, 0.0, 0.0]
+                }
+            },
+            {
+                "python_module" : "MakeLinkConstraints",
+                "process_name" : "MakeLinkConstraints",
+                "Parameters" : {
+                    "model_part_name" : "root",
+                    "node_pairs" : [[2, 3]]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "model_part_name": "root.neumann",
+                    "variable_name": "POINT_LOAD",
+                    "interval": [
+                        0.0, "End"
+                    ],
+                    "modulus": 1e0,
+                    "direction": [-1, 2, 0]
+                }
+            }
+        ],
+        "list_other_processes": []
+    },
+    "output_processes": {}
+}

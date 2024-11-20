@@ -1,0 +1,11 @@
+/*
+!.gitignore
+
+!readme.md
+!.readme
+
+!MakeLinkConstraints.py
+!main.py
+!main.json
+!materials.json
+!mesh.mdpa
