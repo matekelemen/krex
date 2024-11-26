@@ -9,14 +9,16 @@
     },
     "solver_settings": {
         "time_stepping": {
-            "time_step": 1.0
+            "time_step": 1e-3
         },
         "solver_type": "Static",
         "model_part_name": "root",
         "domain_size": 2,
         "echo_level": 1,
-        "analysis_type": "non_linear",
-        "max_iteration" : 10,
+        "analysis_type": "linear",
+        "reform_dofs_at_each_step" : true,
+        "move_mesh_flag" : false,
+        "max_iteration" : 5e1,
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename" : "mesh"
@@ -25,8 +27,8 @@
             "materials_filename": "materials.json"
         },
         "convergence_criterion": "displacement_criterion",
-        "displacement_relative_tolerance": 1e-4,
-        "displacement_absolute_tolerance": 1e-9
+        "displacement_relative_tolerance": 1e-9,
+        "displacement_absolute_tolerance": 1e-12
         ,
         "builder_and_solver_settings" : {
             "use_block_builder" : true,
@@ -71,8 +73,8 @@
                     "interval": [
                         0.0, "End"
                     ],
-                    "modulus": 1e0,
-                    "direction": [-1, 2, 0]
+                    "modulus": "t",
+                    "direction": [-1, 6, 0]
                 }
             }
         ],

@@ -41,7 +41,8 @@ try:
     node: KratosMultiphysics.Node
     for node in root_model_part.Nodes:
         initial_configuration.append([node.X0, node.Y0])
-        deformed_configuration.append([node.X, node.Y])
+        deformed_configuration.append([node.X0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),
+                                       node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)])
 
     initial_configuration = numpy.array(initial_configuration)
     deformed_configuration = numpy.array(deformed_configuration)
