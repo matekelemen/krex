@@ -15,7 +15,7 @@
 
 // --- Structural Mechanics Includes ---
 #include "structural_mechanics_application.h"
-#include "custom_elements/small_displacement.h"
+#include "custom_elements/solid_elements/small_displacement.h"
 
 // --- STL Includes ---
 #include <filesystem>
