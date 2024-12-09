@@ -40,12 +40,12 @@ void ConvertGeometries(Ref<const ModelPart::GeometryContainerType> rSourceContai
     std::size_t id = block_for_each<MaxReduction<std::size_t>>(MakeProxy<location>(rTarget),
                                                                [](const auto& rProxy) {return rProxy.GetEntity().Id();});
 
-    for (auto it_source=rSourceContainer.GeometriesBegin(); it_source!=rSourceContainer.GeometriesEnd(); ++it_source) {
-        if (rPredicate(*it_source)) {
+    for (auto it_source=rSourceContainer.Geometries().ptr_begin(); it_source!=rSourceContainer.Geometries().ptr_end(); ++it_source) {
+        if (rPredicate(**it_source)) {
             if constexpr (std::is_same_v<FactoryReturnType,Element::Pointer>) {
-                rTarget.AddElement(rFactoryFunctor(++id, it_source.base()->second));
+                rTarget.AddElement(rFactoryFunctor(++id, *it_source));
             } else if constexpr (std::is_same_v<FactoryReturnType,Condition::Pointer>) {
-                rTarget.AddCondition(rFactoryFunctor(++id, it_source.base()->second));
+                rTarget.AddCondition(rFactoryFunctor(++id, *it_source));
             } else {
                 static_assert(std::is_same_v<FactoryReturnType,Element::Pointer>, "Invalid factory return type");
             }
