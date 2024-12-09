@@ -9,14 +9,19 @@
     },
     "solver_settings": {
         "time_stepping": {
-            "time_step": 1.0
+            "time_step": 5e-3
         },
         "solver_type": "Static",
         "model_part_name": "root",
         "domain_size": 2,
         "echo_level": 1,
         "analysis_type": "non_linear",
-        "max_iteration" : 10,
+        "max_iteration" : 1e2,
+        "solving_strategy_settings" : {
+            "type" : "newton_raphson"
+        },
+        "reform_dofs_at_each_step" : true,
+        "move_mesh_flag" : false,
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename" : "mesh"
@@ -24,9 +29,11 @@
         "material_import_settings": {
             "materials_filename": "materials.json"
         },
-        "convergence_criterion": "displacement_criterion",
-        "displacement_relative_tolerance": 1e-4,
-        "displacement_absolute_tolerance": 1e-9
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 1e-8,
+        "displacement_absolute_tolerance": 1e-10,
+        "residual_relative_tolerance" : 1e-8,
+        "residual_absolute_tolerance" : 1e-10
         ,
         "builder_and_solver_settings" : {
             "use_block_builder" : true,
@@ -71,12 +78,29 @@
                     "interval": [
                         0.0, "End"
                     ],
-                    "modulus": 1e0,
-                    "direction": [-1, 2, 0]
+                    "modulus": "2e-1 * t",
+                    "direction": [-1, 6, 0]
                 }
             }
         ],
         "list_other_processes": []
     },
-    "output_processes": {}
+    "output_processes": {
+        "vtk" : [
+            {
+                "Parameters": {
+                  "folder_name": "vtk",
+                  "model_part_name": "root",
+                  "nodal_solution_step_data_variables": [
+                    "DISPLACEMENT"
+                  ],
+                  "output_sub_model_parts": false,
+                  "save_output_files_in_folder": true
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "VTKOutputProcess",
+                "python_module": "vtk_output_process"
+            }
+        ]
+    }
 }
