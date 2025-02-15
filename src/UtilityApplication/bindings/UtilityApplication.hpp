@@ -4,9 +4,6 @@
 // --- Core Includes ---
 #include "includes/kratos_application.h"
 
-// --- STL Includes ---
-#include <ostream>
-
 
 namespace Kratos {
 

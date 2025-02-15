@@ -1,6 +1,6 @@
 /// @author Máté Kelemen
 
-#ifdef KRATOS_PYTHON
+//#ifdef KRATOS_PYTHON
 
 // --- External Includes ---
 #include <pybind11/pybind11.h>
@@ -11,6 +11,7 @@
 // --- UtilityApp Includes ---
 #include "bindings/UtilityApplication.hpp"
 #include "UtilityApp/CanonicalizeElementsProcess.hpp"
+#include "UtilityApp/AMGCLWrapper.hpp"
 
 
 namespace Kratos::Python{
@@ -20,7 +21,7 @@ PYBIND11_MODULE(KratosUtilityApplication, module)
 {
     pybind11::class_<UtilityApplication,
                      UtilityApplication::Pointer,
-                     KratosApplication>(module, "KratosWRApplication")
+                     KratosApplication>(module, "KratosUtilityApplication")
         .def(pybind11::init<>())
         ;
 
@@ -32,4 +33,4 @@ PYBIND11_MODULE(KratosUtilityApplication, module)
 
 } // namespace Kratos::Python
 
-#endif
+//#endif
