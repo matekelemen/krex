@@ -9,6 +9,19 @@ set(application_core_name "${PROJECT_NAME}Core")
 set(application_name "${PROJECT_NAME}Application")
 set(module_name Kratos${application_name})
 
+# Dependency configuration
+if (${AMGCL_GPGPU} MATCHES ON)
+    if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
+        target_link_libraries(KratosLinearSolversCore PUBLIC VexCL::OpenCL)
+        add_definitions(-DAMGCL_GPGPU)
+    elseif ("${AMGCL_GPGPU_BACKEND}" STREQUAL "CUDA" AND TARGET VexCL::CUDA)
+        target_link_libraries(KratosLinearSolversCore PUBLIC VexCL::CUDA)
+        add_definitions(-DAMGCL_GPGPU)
+    else()
+        message(WARNING "AMGCL GPGPU backend not found")
+    endif()
+endif()
+
 # Define core C++ library
 file(GLOB sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 add_library(${application_core_name} SHARED ${sources})
