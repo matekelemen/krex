@@ -1,5 +1,0 @@
-{
-    "solver_type" : "gauss_seidel",
-    "max_iterations" : 3,
-    "relaxation" : 1.1
-}

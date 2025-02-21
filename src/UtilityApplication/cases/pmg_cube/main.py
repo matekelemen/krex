@@ -3,6 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.MedApplication
+import KratosMultiphysics.UtilityApplication
 
 # --- STD Imports ---
 import sys
@@ -56,42 +57,50 @@ if __name__ == "__main__":
                         dest = "mesh",
                         type = str,
                         default = "x1")
-    parser.add_argument("--solver",
-                        dest = "solver",
-                        type = str,
-                        default = "hierarchical_solver")
-    parser.add_argument("--mpc-coefficient",
-                        dest = "mpc_coefficient",
+    parser.add_argument("--mfc-coefficient",
+                        dest = "mfc_coefficient",
                         type = float,
                         default = 1.0)
-    parser.add_argument("--mpc-constant",
-                        dest = "mpc_constant",
+    parser.add_argument("--mfc-constant",
+                        dest = "mfc_constant",
                         type = float,
                         default = 0.0)
     parser.add_argument("--constrained-group",
                         dest = "constrained_group",
                         type = str,
                         default = "")
+    parser.add_argument("--no-mfc",
+                        dest = "no_mfc",
+                        action = "store_const",
+                        default = False,
+                        const = True)
     arguments = parser.parse_args()
     is_linear = arguments.mesh.startswith("linear_")
 
+    # Load settings.
     with open(arguments.parameters_path, 'r') as parameter_file:
         project_json = json.load(parameter_file)
 
-    # Manipulate elements and surface conditions if the mesh is linear
+    # Manipulate elements and surface conditions if the mesh is linear.
     if is_linear:
         for item in project_json["modelers"][0]["parameters"]["elements_list"]:
             item["element_name"] = "SmallDisplacementElement3D4N"
-
     project_json["solver_settings"]["model_import_settings"]["input_filename"] = "meshes/" + arguments.mesh
-    project_json["solver_settings"]["linear_solver_settings"]["@include_json"] = "solvers/" + arguments.solver + ".json"
-    for process_settings in project_json["processes"]["constraints_process_list"]:
-        if process_settings["process_name"] == "RBE1Process":
-            process_settings["Parameters"]["coefficient"] = arguments.mpc_coefficient
-            process_settings["Parameters"]["constant"] = arguments.mpc_constant
 
-            if arguments.constrained_group:
-                process_settings["Parameters"]["dependent_model_part_name"] = arguments.constrained_group
+    # Configure MFCs.
+    if arguments.no_mfc:
+        print(project_json["processes"]["constraints_process_list"])
+        project_json["processes"]["constraints_process_list"] = [item for item in project_json["processes"]["constraints_process_list"] if item["process_name"] != "MakeMultifreedomConstraintsProcess"]
+        for item in project_json["processes"]["constraints_process_list"]:
+            print(item["process_name"])
+    else:
+        for process_settings in project_json["processes"]["constraints_process_list"]:
+            if process_settings["process_name"] == "MakeMultifreedomConstraintsProcess":
+                process_settings["Parameters"]["coefficient"] = arguments.mfc_coefficient
+                process_settings["Parameters"]["constant"] = arguments.mfc_constant
+
+                if arguments.constrained_group:
+                    process_settings["Parameters"]["dependent_model_part_name"] = arguments.constrained_group
 
     parameters = KratosMultiphysics.Parameters(json.dumps(project_json))
 
@@ -112,6 +121,8 @@ if __name__ == "__main__":
 
     # Insert an external node into the mesh that will act as master or slave
     external_sub_model_part = root_model_part.CreateSubModelPart("external_node")
-    external_node: KratosMultiphysics.Node = external_sub_model_part.CreateNewNode(GetUniqueNodeId(root_model_part), 10.0, 10.0, 20.0)
+    id_external_node = GetUniqueNodeId(root_model_part)
+    print(f"external node id is {id_external_node}")
+    external_node: KratosMultiphysics.Node = external_sub_model_part.CreateNewNode(id_external_node, 10.0, 10.0, 20.0)
 
     simulation.Run()

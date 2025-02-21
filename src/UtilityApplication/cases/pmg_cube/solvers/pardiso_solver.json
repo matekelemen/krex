@@ -1,0 +1,3 @@
+{
+    "solver_type" : "LinearSolversApplication.pardiso_lu"
+}

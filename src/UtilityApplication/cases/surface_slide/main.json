@@ -28,9 +28,15 @@
         "displacement_absolute_tolerance": 1e-9,
         "residual_relative_tolerance": 1e-4,
         "residual_absolute_tolerance": 1e-9,
-        "linear_solver_settings": {
-            "solver_type" : "amgcl",
-            "verbosity" : 1
+        "builder_and_solver_settings" : {
+            "type" : "p_multigrid",
+            "advanced_settings" : {
+                "verbosity" : 3,
+                "constraint_imposition" : {
+                    "method" : "augmented_lagrange",
+                    "penalty_factor" : 1e0
+                }
+            }
         }
     },
     "processes": {
