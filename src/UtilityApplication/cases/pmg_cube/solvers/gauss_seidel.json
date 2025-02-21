@@ -1,0 +1,10 @@
+{
+    "solver_type" : "LinearSolversApplication.gauss_seidel",
+    "relaxation_factor" : 1.9,
+    "max_iterations" : 1e1,
+    "verbosity" : 4,
+    "parallelization" : "none",
+    "coloring_settings" : {
+        "verbosity" : 4
+    }
+}

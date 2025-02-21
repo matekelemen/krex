@@ -12,6 +12,7 @@
 #include "bindings/UtilityApplication.hpp"
 #include "UtilityApp/CanonicalizeElementsProcess.hpp"
 #include "UtilityApp/AMGCLWrapper.hpp"
+#include "UtilityApp/MultifreedomConstraintToElementProcess.hpp"
 
 
 namespace Kratos::Python{
@@ -25,9 +26,17 @@ PYBIND11_MODULE(KratosUtilityApplication, module)
         .def(pybind11::init<>())
         ;
 
-    pybind11::class_<UtilityApp::CanonicalizeElementsProcess,std::shared_ptr<UtilityApp::CanonicalizeElementsProcess>,Process>(module, "CanonicalizeElementsProcess")
+    pybind11::class_<UtilityApp::CanonicalizeElementsProcess,
+                     std::shared_ptr<UtilityApp::CanonicalizeElementsProcess>,
+                     Process>(module, "CanonicalizeElementsProcess")
         .def(pybind11::init<Model&,Parameters>())
         ;
+
+    pybind11::class_<UtilityApp::MultifreedomConstraintToElementProcess,
+                     UtilityApp::MultifreedomConstraintToElementProcess::Pointer,
+                     Process> (module, "MultifreedomConstraintToElementProcess")
+    .def(pybind11::init<Model&, Parameters>())
+    ;
 } // PYBIND11_MODULE
 
 
