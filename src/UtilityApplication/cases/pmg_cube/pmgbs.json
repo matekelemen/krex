@@ -1,0 +1,60 @@
+{
+    "type": "p_multigrid",
+    "advanced_settings": {
+        "tolerance": 1e-6,
+        "max_iterations": 1,
+        "verbosity": 3,
+        "diagonal_scaling": "abs_max",
+        "smoother_settings": {
+            "solver_type": "amgcl"
+        },
+        "linear_solver_settings": {
+            "solver_type": "amgcl_wrapper",
+            "verbosity": 0,
+            "tolerance": 1e-1,
+            "backend": "gpu",
+            "amgcl_settings": {
+                "precond": {
+                    "class": "amg",
+                    "relax": {
+                        "type": "ilu0"
+                    },
+                    "coarsening": {
+                        "type": "aggregation",
+                        "aggr": {
+                            "eps_strong": 0.08,
+                            "block_size": 3
+                        }
+                    },
+                    "coarse_enough": 333,
+                    "npre": 2,
+                    "npost": 2
+                },
+                "solver": {
+                    "type": "cg",
+                    "maxiter": 500,
+                    "tol": 1e-1
+                }
+            }
+        },
+        "constraint_imposition_settings": {
+            "method": "augmented_lagrange",
+            "penalty_factor": 1e11,
+            "max_iterations": 15,
+            "tolerance": 1e-6,
+            "verbosity": 2
+        },
+        "coarse_hierarchy_settings": {
+            "precision": "double",
+            "max_depth": 0,
+            "verbosity": 2,
+            "constraint_imposition_settings": {
+                "method": "augmented_lagrange",
+                "penalty_factor": 1e14,
+                "max_iterations": 5,
+                "tolerance": 1e-6,
+                "verbosity": 1
+            }
+        }
+    }
+}
