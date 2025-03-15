@@ -63,19 +63,14 @@ class MakeMultifreedomConstraintsProcess(KratosMultiphysics.Process):
         CoefficientFunctor = typing.Callable[[KratosMultiphysics.Node,KratosMultiphysics.Node],float]
         relations: "dict[KratosMultiphysics.Variable,dict[KratosMultiphysics.Variable,tuple[CoefficientFunctor,CoefficientFunctor]]]" = {
             KratosMultiphysics.DISPLACEMENT_X : {
-                KratosMultiphysics.DISPLACEMENT_X : (lambda slave, master: self.coefficient, lambda slave, master: self.constant),
-                KratosMultiphysics.ROTATION_Y : (lambda slave, master: slave.Z - master.Z, lambda slave, master: self.constant),
-                KratosMultiphysics.ROTATION_Z : (lambda slave, master: master.Y - slave.Y, lambda slave, master: self.constant)
+                KratosMultiphysics.DISPLACEMENT_X : (lambda slave, master: self.coefficient, lambda slave, master: self.constant)
+                #,KratosMultiphysics.ROTATION_Y : (lambda slave, master: slave.Z - master.Z, lambda slave, master: self.constant),
+                #,KratosMultiphysics.ROTATION_Z : (lambda slave, master: master.Y - slave.Y, lambda slave, master: self.constant)
             },
             KratosMultiphysics.DISPLACEMENT_Y : {
-                KratosMultiphysics.DISPLACEMENT_Y : (lambda slave, master: self.coefficient, lambda slave, master: self.constant),
-                KratosMultiphysics.ROTATION_X : (lambda slave, master: master.Z - slave.Z, lambda slave, master: self.constant),
-                KratosMultiphysics.ROTATION_Z : (lambda slave, master: slave.X - master.X, lambda slave, master: self.constant)
-            },
-            KratosMultiphysics.DISPLACEMENT_Z : {
-                KratosMultiphysics.DISPLACEMENT_Z : (lambda slave, master: self.coefficient, lambda slave, master: self.constant),
-                KratosMultiphysics.ROTATION_X : (lambda slave, master: slave.Y - master.Y, lambda slave, master: self.constant),
-                KratosMultiphysics.ROTATION_Y : (lambda slave, master: master.X - slave.X, lambda slave, master: self.constant)
+                KratosMultiphysics.DISPLACEMENT_Y : (lambda slave, master: self.coefficient, lambda slave, master: self.constant)
+                #,KratosMultiphysics.ROTATION_X : (lambda slave, master: master.Z - slave.Z, lambda slave, master: self.constant),
+                #,KratosMultiphysics.ROTATION_Z : (lambda slave, master: slave.X - master.X, lambda slave, master: self.constant)
             }
         }
 

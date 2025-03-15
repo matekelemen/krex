@@ -1,0 +1,4 @@
+{
+    "solver_type" : "gauss_seidel",
+    "max_iterations" : 3
+}

@@ -1,0 +1,18 @@
+{
+    "solver_type": "amgcl_wrapper",
+    "backend": "gpu",
+    "amgcl_settings": {
+        "precond": {
+            "class": "amg",
+            "max_levels" : 1,
+            "relax": {
+                "type": "ilu0"
+            },
+            "npre": 4,
+            "npost": 4
+        },
+        "solver": {
+            "type": "preonly"
+        }
+    }
+}
