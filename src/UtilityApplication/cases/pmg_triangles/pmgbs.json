@@ -1,0 +1,27 @@
+{
+    "type": "p_multigrid",
+    "advanced_settings": {
+        "tolerance": 1e-6,
+        "max_iterations": 25,
+        "verbosity": 3,
+        "diagonal_scaling": "none",
+        "smoother_settings": {
+            "solver_type" : "gauss_seidel",
+            "max_iterations" : 3
+        },
+        "linear_solver_settings": {
+            "@include_json" : "../pmg_cube/amgcl.json"
+        },
+        "constraint_imposition_settings": {
+            "method": "none"
+        },
+        "coarse_hierarchy_settings": {
+            "precision": "double",
+            "max_depth": 1,
+            "verbosity": 3,
+            "constraint_imposition_settings": {
+                "method": "none"
+            }
+        }
+    }
+}

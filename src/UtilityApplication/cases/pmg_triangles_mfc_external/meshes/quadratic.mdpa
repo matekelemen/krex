@@ -1,0 +1,66 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1    0.00            0.00            0.00
+    2   -1.00           -1.00            0.00
+    3    1.00           -1.00            0.00
+    4   -1.00            1.00            0.00
+    5    1.00            1.00            0.00
+    6    0.00            0.00            0.00
+    7    0.00            1.00            0.00
+    8   -0.50            0.50            0.00
+    9   -1.00            0.00            0.00
+    10  -0.50           -0.50            0.00
+    11   0.50           -0.50            0.00
+    12   1.00            0.00            0.00
+    13   0.50            0.50            0.00
+End Nodes
+
+Begin Elements SmallDisplacementElement2D6N
+    1 0 2 1 4 10 8 9
+    2 0 6 3 5 11 12 13
+End Elements
+
+Begin Conditions PointLoadCondition2D1N
+    1 0 1
+End Conditions
+
+Begin SubModelPart quadratic_nodes
+    Begin SubModelPartNodes
+        8 9 10 11 12 13
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart linear_nodes
+    Begin SubModelPartNodes
+        1 2 3 4 5 6
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart neumann
+    Begin SubModelPartNodes
+        1
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+        1
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart dirichlet
+    Begin SubModelPartNodes
+        2 3 4
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart master
+    Begin SubModelPartNodes
+        7
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart slave
+    Begin SubModelPartNodes
+        1 6
+    End SubModelPartNodes
+End SubModelPart

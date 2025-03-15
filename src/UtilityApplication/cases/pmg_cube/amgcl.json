@@ -1,0 +1,5 @@
+{
+    "solver_type" : "amgcl",
+    "block_size" : 3,
+    "verbosity" : 0
+}

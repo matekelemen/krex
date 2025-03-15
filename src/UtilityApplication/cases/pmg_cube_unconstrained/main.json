@@ -18,7 +18,7 @@
                 ],
                 "conditions_list" : [
                     {
-                        "model_part_name" : "root.external_node",
+                        "model_part_name" : "root",
                         "condition_name" : "PointLoadCondition3D1N"
                     }
                 ]
@@ -48,17 +48,31 @@
         "residual_absolute_tolerance": 1e-9,
         "max_iteration": 1,
         "use_old_stiffness_in_first_iteration": false,
-        "rotation_dofs": true,
+        "rotation_dofs": false,
         "volumetric_strain_dofs": false,
         "builder_and_solver_settings" : {
             "@include_json" : "pmgbs.json"
         },
         "linear_solver_settings" : {
-            "@include_json" : "amgclwrapper.json"
+            "solver_type" : "amgcl",
+            "tolerance" : 1e-6,
+            "verbosity" : 1
         }
     },
     "processes": {
         "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.top_40",
+                    "variable_name": "DISPLACEMENT",
+                    "interval": [0.0, "End"],
+                    "constrained": [true, true, true],
+                    "value": [0.0, 0.0, -1]
+                }
+            },
             {
                 "python_module": "assign_vector_variable_process",
                 "kratos_module": "KratosMultiphysics",
@@ -95,57 +109,27 @@
                     "value": [0.0, null, null]
                 }
             }
-            ,{
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
                 "Parameters": {
-                  "slave_model_part_name": "root.top_40",
-                  "master_model_part_name": "root.external_node"
-                },
-                "process_name": "MakeMultifreedomConstraintsProcess",
-                "python_module": "make_multifreedom_constraints_process"
-              }
-            ,{
-                "kratos_module" : "KratosMultiphysics",
-                "python_module" : "assign_vector_variable_process",
-                "process_name" : "AssignVectorVariableProcess",
-                "Parameters" : {
-                    "model_part_name": "root.external_node",
-                    "variable_name": "DISPLACEMENT",
+                    "model_part_name": "root.top_40",
+                    "variable_name": "POINT_LOAD",
                     "interval": [0.0, "End"],
-                    "constrained": [true, true, true],
-                    "value": [0, 0, -1]
-                }
-            }
-            ,{
-                "kratos_module" : "KratosMultiphysics",
-                "python_module" : "assign_vector_variable_process",
-                "process_name" : "AssignVectorVariableProcess",
-                "Parameters" : {
-                    "model_part_name": "root.external_node",
-                    "variable_name": "ROTATION",
-                    "interval": [0.0, "End"],
-                    "constrained": [true, true, true],
-                    "value": [0, 0, 0]
+                    "modulus": 0.0,
+                    "direction": [0.0, 0.0, -1]
                 }
             }
         ],
-        "loads_process_list": [{
-            "python_module": "assign_vector_by_direction_to_condition_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "AssignVectorByDirectionToConditionProcess",
-            "Parameters": {
-                "model_part_name": "root.external_node",
-                "variable_name": "POINT_LOAD",
-                "interval": [0.0, "End"],
-                "modulus": 0,
-                "direction": [0, 0, -1]
-            }
-        }],
         "list_other_processes": [
             {
                 "python_module" : "make_point_load_conditions_process",
                 "process_name" : "MakePointLoadConditionsProcess",
                 "Parameters" : {
-                    "model_part_name" : "root.external_node"
+                    "model_part_name" : "root.top_40"
                 }
             },
             {
@@ -165,16 +149,6 @@
                     "file_name" : "structure_<time>.h5",
                     "journal_path" : "structure.journal",
                     "output_pattern" : "structure.xdmf"
-                }
-            },
-            {
-                "python_module" : "utilities.GenerateXDMFProcess",
-                "process_name" : "GenerateXDMFProcess",
-                "kratos_module" : "KratosMultiphysics.WRApplication",
-                "Parameters" : {
-                    "file_name" : "mfcs_<time>.h5",
-                    "journal_path" : "mfcs.journal",
-                    "output_pattern" : "mfcs.xdmf"
                 }
             }
         ]
@@ -220,8 +194,7 @@
                 "output_sub_model_parts"             : false,
                 "output_path"                        : "vtk",
                 "save_output_files_in_folder"        : true,
-                "nodal_solution_step_data_variables" : ["DISPLACEMENT", "REACTION"],
-                "condition_data_value_variables"      : ["POINT_LOAD"]
+                "nodal_solution_step_data_variables" : ["DISPLACEMENT", "REACTION"]
             }
         }]
     },
