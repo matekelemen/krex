@@ -11,7 +11,6 @@
 //
 
 #ifndef AMGCL_PARAM_UNKNOWN
-    #include "input_output/logger.h"
     #define AMGCL_PARAM_UNKNOWN(NAME)                       \
         KRATOS_ERROR                                        \
             << KRATOS_CODE_LOCATION                         \
@@ -22,6 +21,7 @@
 #include "UtilityApp/AMGCLWrapper.hpp"
 #include "spaces/ublas_space.h"
 #include "utilities/profiler.h"
+#include "input_output/logger.h"
 
 // External includes
 #include "amgcl/adapter/ublas.hpp"
