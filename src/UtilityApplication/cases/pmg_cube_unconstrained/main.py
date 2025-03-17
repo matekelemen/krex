@@ -64,9 +64,26 @@ def GetUniqueNodeId(model_part: KratosMultiphysics.ModelPart) -> int:
     return id
 
 
+def ConfigureProjectParameters(parameters: KratosMultiphysics.Parameters,
+                               arguments: argparse.Namespace) -> None:
+    # Manipulate elements and surface conditions if the mesh is linear.
+    if is_linear:
+        for item in project_json["modelers"][0]["parameters"]["elements_list"]:
+            item["element_name"] = "SmallDisplacementElement3D4N"
+    parameters["solver_settings"]["model_import_settings"]["input_filename"] = "meshes/" + arguments.mesh
+
+    # Disable p-multigrid if requested.
+    if arguments.disable_pmg:
+        parameters["solver_settings"]["builder_and_solver_settings"]["@include_json"] = "defaultbs.json"
+    else:
+        parameters["solver_settings"]["builder_and_solver_settings"]["@include_json"] = "pmgbs.json"
+
+
 if __name__ == "__main__":
+    # AnalysisStage assumes the pwd is in the main JSON's directory, so cd there.
     os.chdir(pathlib.Path(__file__).absolute().parent)
 
+    # Parse command line arguments.
     parser = argparse.ArgumentParser("kratos")
     parser.add_argument("--parameters",
                         dest = "parameters_path",
@@ -76,25 +93,24 @@ if __name__ == "__main__":
                         dest = "mesh",
                         type = str,
                         default = "x1")
+    parser.add_argument("--disable-pmg",
+                        dest = "disable_pmg",
+                        action = "store_const",
+                        default = False,
+                        const = True)
     arguments = parser.parse_args()
     is_linear = arguments.mesh.startswith("linear_")
     mesh_format = ParseMeshFormat(pathlib.Path(arguments.mesh))
 
-    # Load settings.
+    # Load and configure settings.
     with open(arguments.parameters_path, 'r') as parameter_file:
         project_json = json.load(parameter_file)
+    ConfigureProjectParameters(project_json, arguments)
 
-    # Manipulate elements and surface conditions if the mesh is linear.
-    if is_linear:
-        for item in project_json["modelers"][0]["parameters"]["elements_list"]:
-            item["element_name"] = "SmallDisplacementElement3D4N"
-    project_json["solver_settings"]["model_import_settings"]["input_filename"] = "meshes/" + arguments.mesh
-
+    # Convert settings into a Kratos object.
     parameters = KratosMultiphysics.Parameters(json.dumps(project_json))
 
-    model = KratosMultiphysics.Model()
-    root_model_part = model.CreateModelPart("root")
-
+    # Load and construct the analysis.
     analysis_stage_module_name = parameters["analysis_stage"].GetString()
     analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
     analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
@@ -102,8 +118,11 @@ if __name__ == "__main__":
     analysis_stage_module = importlib.import_module(analysis_stage_module_name)
     analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
 
-    simulation = CreateAnalysisStageWithFlushInstance(analysis_stage_class, model, parameters)
+    model = KratosMultiphysics.Model()
+    root_model_part = model.CreateModelPart("root")
+    analysis = analysis_stage_class(model, parameters)
 
+    # Load the mesh.
     mesh_path: pathlib.Path = pathlib.Path("__file__").absolute().parent.parent / "pmg_cube" / "meshes" / arguments.mesh
     mesh_io: KratosMultiphysics.ModelPartIO
     if mesh_format == MeshFormat.MDPA:
@@ -119,4 +138,5 @@ if __name__ == "__main__":
     mesh_io.ReadModelPart(root_model_part)
     root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
-    simulation.Run()
+    # Run!
+    analysis.Run()
