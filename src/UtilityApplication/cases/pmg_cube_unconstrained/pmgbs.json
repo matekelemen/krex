@@ -6,10 +6,10 @@
         "verbosity": 3,
         "diagonal_scaling": "none",
         "smoother_settings": {
-            "@include_json" : "../pmg_cube/gauss_seidel.json"
+            "@include_json" : "../pmg_cube/amgclsmoother.json"
         },
         "linear_solver_settings": {
-            "@include_json" : "../pmg_cube/amgcl.json"
+            "@include_json" : "../pmg_cube/amgclwrapper.json"
         },
         "constraint_imposition_settings": {
             "method": "none"

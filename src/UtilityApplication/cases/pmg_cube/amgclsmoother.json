@@ -6,10 +6,10 @@
             "class": "amg",
             "max_levels" : 1,
             "relax": {
-                "type": "ilu0"
+                "type": "ilut"
             },
-            "npre": 4,
-            "npost": 4
+            "npre": 3,
+            "npost": 3
         },
         "solver": {
             "type": "preonly"

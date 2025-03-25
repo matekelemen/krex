@@ -12,6 +12,8 @@ import importlib
 import argparse
 import json
 import pathlib
+import enum
+import os
 
 
 def CreateAnalysisStageWithFlushInstance(cls, global_model, parameters):
@@ -39,6 +41,21 @@ def CreateAnalysisStageWithFlushInstance(cls, global_model, parameters):
     return AnalysisStageWithFlush(global_model, parameters)
 
 
+class MeshFormat(enum.Enum):
+    MDPA    = 1
+    MED     = 2
+
+
+def ParseMeshFormat(mesh_path: pathlib.Path) -> MeshFormat:
+    suffix = mesh_path.suffix
+    if suffix == ".mdpa":
+        return MeshFormat.MDPA
+    elif suffix == "" or suffix == ".med":
+        return MeshFormat.MED
+    else:
+        raise ValueError(f"Unsupported mesh format: \"{suffix}\"")
+
+
 def GetUniqueNodeId(model_part: KratosMultiphysics.ModelPart) -> int:
     id = 1
     for node in model_part.Nodes:
@@ -47,7 +64,26 @@ def GetUniqueNodeId(model_part: KratosMultiphysics.ModelPart) -> int:
     return id
 
 
+def ConfigureProjectParameters(parameters: KratosMultiphysics.Parameters,
+                               arguments: argparse.Namespace) -> None:
+    # Manipulate elements and surface conditions if the mesh is linear.
+    if is_linear:
+        for item in project_json["modelers"][0]["parameters"]["elements_list"]:
+            item["element_name"] = "SmallDisplacementElement3D4N"
+    parameters["solver_settings"]["model_import_settings"]["input_filename"] = "meshes/" + arguments.mesh
+
+    # Disable p-multigrid if requested.
+    if arguments.disable_pmg:
+        parameters["solver_settings"]["builder_and_solver_settings"]["@include_json"] = "defaultbs.json"
+    else:
+        parameters["solver_settings"]["builder_and_solver_settings"]["@include_json"] = "pmgbs.json"
+
+
 if __name__ == "__main__":
+    # AnalysisStage assumes the pwd is in the main JSON's directory, so cd there.
+    os.chdir(pathlib.Path(__file__).absolute().parent)
+
+    # Parse command line arguments.
     parser = argparse.ArgumentParser("kratos")
     parser.add_argument("--parameters",
                         dest = "parameters_path",
@@ -57,56 +93,24 @@ if __name__ == "__main__":
                         dest = "mesh",
                         type = str,
                         default = "x1")
-    parser.add_argument("--mfc-coefficient",
-                        dest = "mfc_coefficient",
-                        type = float,
-                        default = 1.0)
-    parser.add_argument("--mfc-constant",
-                        dest = "mfc_constant",
-                        type = float,
-                        default = 0.0)
-    parser.add_argument("--constrained-group",
-                        dest = "constrained_group",
-                        type = str,
-                        default = "")
-    parser.add_argument("--no-mfc",
-                        dest = "no_mfc",
+    parser.add_argument("--disable-pmg",
+                        dest = "disable_pmg",
                         action = "store_const",
                         default = False,
                         const = True)
     arguments = parser.parse_args()
     is_linear = arguments.mesh.startswith("linear_")
+    mesh_format = ParseMeshFormat(pathlib.Path(arguments.mesh))
 
-    # Load settings.
+    # Load and configure settings.
     with open(arguments.parameters_path, 'r') as parameter_file:
         project_json = json.load(parameter_file)
+    ConfigureProjectParameters(project_json, arguments)
 
-    # Manipulate elements and surface conditions if the mesh is linear.
-    if is_linear:
-        for item in project_json["modelers"][0]["parameters"]["elements_list"]:
-            item["element_name"] = "SmallDisplacementElement3D4N"
-    project_json["solver_settings"]["model_import_settings"]["input_filename"] = "meshes/" + arguments.mesh
-
-    # Configure MFCs.
-    if arguments.no_mfc:
-        print(project_json["processes"]["constraints_process_list"])
-        project_json["processes"]["constraints_process_list"] = [item for item in project_json["processes"]["constraints_process_list"] if item["process_name"] != "MakeMultifreedomConstraintsProcess"]
-        for item in project_json["processes"]["constraints_process_list"]:
-            print(item["process_name"])
-    else:
-        for process_settings in project_json["processes"]["constraints_process_list"]:
-            if process_settings["process_name"] == "MakeMultifreedomConstraintsProcess":
-                process_settings["Parameters"]["coefficient"] = arguments.mfc_coefficient
-                process_settings["Parameters"]["constant"] = arguments.mfc_constant
-
-                if arguments.constrained_group:
-                    process_settings["Parameters"]["dependent_model_part_name"] = arguments.constrained_group
-
+    # Convert settings into a Kratos object.
     parameters = KratosMultiphysics.Parameters(json.dumps(project_json))
 
-    model = KratosMultiphysics.Model()
-    root_model_part = model.CreateModelPart("root")
-
+    # Load and construct the analysis.
     analysis_stage_module_name = parameters["analysis_stage"].GetString()
     analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
     analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
@@ -114,9 +118,24 @@ if __name__ == "__main__":
     analysis_stage_module = importlib.import_module(analysis_stage_module_name)
     analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
 
-    simulation = CreateAnalysisStageWithFlushInstance(analysis_stage_class, model, parameters)
-    mesh_path = pathlib.Path("meshes") / (arguments.mesh + ".med")
-    KratosMultiphysics.MedApplication.MedModelPartIO(mesh_path, KratosMultiphysics.ModelPartIO.READ).ReadModelPart(root_model_part)
+    model = KratosMultiphysics.Model()
+    root_model_part = model.CreateModelPart("root")
+    analysis = analysis_stage_class(model, parameters)
+
+    # Load the mesh.
+    mesh_path: pathlib.Path = pathlib.Path("__file__").absolute().parent.parent / "pmg_cube" / "meshes" / arguments.mesh
+    mesh_io: KratosMultiphysics.ModelPartIO
+    if mesh_format == MeshFormat.MDPA:
+        mesh_path = mesh_path.with_suffix("")
+        mesh_io = KratosMultiphysics.ModelPartIO(mesh_path, KratosMultiphysics.ModelPartIO.READ)
+    elif mesh_format == MeshFormat.MED:
+        if not mesh_path.suffix:
+            mesh_path =  mesh_path.with_suffix(".med")
+        mesh_io = KratosMultiphysics.MedApplication.MedModelPartIO(mesh_path, KratosMultiphysics.ModelPartIO.READ)
+    else:
+        raise RuntimeError(f"Unhandled mesh format: {mesh_format}")
+
+    mesh_io.ReadModelPart(root_model_part)
     root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
 
     # Insert an external node into the mesh that will act as master or slave
@@ -125,4 +144,5 @@ if __name__ == "__main__":
     print(f"external node id is {id_external_node}")
     external_node: KratosMultiphysics.Node = external_sub_model_part.CreateNewNode(id_external_node, 10.0, 10.0, 20.0)
 
-    simulation.Run()
+    # Run!
+    analysis.Run()
