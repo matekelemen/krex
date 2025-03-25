@@ -23,10 +23,10 @@ void CheckRegisteredGeometry(const std::string& rGeometryName)
 }
 
 
-void ProcessModelTree(const Kratos::ModelPart& rSourceTree,
+void ProcessModelTree(Kratos::ModelPart& rSourceTree,
                       Kratos::ModelPart& rTargetTree)
 {
-    for (const Kratos::ModelPart& r_source_child : rSourceTree.SubModelParts()) {
+    for (Kratos::ModelPart& r_source_child : rSourceTree.SubModelParts()) {
         const std::string child_name = r_source_child.Name();
         Kratos::ModelPart& r_target_child = rTargetTree.CreateSubModelPart(child_name);
         ProcessModelTree(r_source_child, r_target_child);
