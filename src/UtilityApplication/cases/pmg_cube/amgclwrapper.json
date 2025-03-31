@@ -1,13 +1,13 @@
 {
     "solver_type": "amgcl_wrapper",
     "verbosity": 1,
-    "tolerance": 7e-1,
+    "tolerance": 5e-1,
     "backend": "gpu",
     "amgcl_settings": {
         "precond": {
             "class": "amg",
             "relax": {
-                "type": "ilu0"
+                "type": "ilut"
             },
             "coarsening": {
                 "type": "aggregation",
@@ -16,14 +16,14 @@
                     "block_size": 3
                 }
             },
-            "coarse_enough": 333,
+            "coarse_enough": 5e3,
             "npre": 2,
             "npost": 2
         },
         "solver": {
             "type": "cg",
             "maxiter": 500,
-            "tol": 7e-1
+            "tol": 5e-1
         }
     }
 }

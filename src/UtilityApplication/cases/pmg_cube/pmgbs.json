@@ -13,7 +13,7 @@
         },
         "constraint_imposition_settings": {
             "method": "augmented_lagrange",
-            "penalty_factor": 1e14,
+            "penalty_factor": 1e12,
             "max_iterations": 5,
             "tolerance": 1e-6,
             "verbosity": 2
@@ -24,8 +24,8 @@
             "verbosity": 2,
             "constraint_imposition_settings": {
                 "method": "augmented_lagrange",
-                "penalty_factor": 1e14,
-                "max_iterations": 50,
+                "penalty_factor": 1e12,
+                "max_iterations": 5,
                 "tolerance": 1e-6,
                 "verbosity": 1
             }
