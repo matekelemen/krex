@@ -9,16 +9,16 @@
     },
     "solver_settings": {
         "time_stepping": {
-            "time_step": 1e-3
+            "time_step": 1e-1
         },
         "solver_type": "Static",
         "model_part_name": "root",
         "domain_size": 2,
         "echo_level": 1,
-        "analysis_type": "linear",
-        "reform_dofs_at_each_step" : true,
-        "move_mesh_flag" : false,
-        "max_iteration" : 5e1,
+        "analysis_type": "non_linear",
+        "reform_dofs_at_each_step" : false,
+        "@include_json" : "move_mesh_flag.json",
+        "max_iteration" : 1e2,
         "model_import_settings": {
             "input_type": "mdpa",
             "input_filename" : "mesh"
@@ -28,15 +28,25 @@
         },
         "convergence_criterion": "displacement_criterion",
         "displacement_relative_tolerance": 1e-9,
-        "displacement_absolute_tolerance": 1e-12
-        ,
+        "displacement_absolute_tolerance": 1e-12,
         "builder_and_solver_settings" : {
-            "use_block_builder" : true,
-            "use_lagrange_BS" : false
-        }
-        ,
-        "linear_solver_settings": {
-            "solver_type" : "LinearSolversApplication.sparse_lu"
+            "type" : "p_multigrid",
+            "advanced_settings" : {
+                "verbosity" : 1,
+                "max_iterations" : 1,
+                "smoother_settings" : {"solver_type" : "pardiso_lu"},
+                "constraint_imposition_settings" : {
+                    "method" : "augmented_lagrange",
+                    "penalty_factor" : 1e1,
+                    "max_iterations" : 1e2,
+                    "tolerance" : 1e-9,
+                    "verbosity" : 1
+                }
+            }
+        },
+        "solving_strategy_settings" : {
+            "type" : "newton_raphson",
+            "advanced_settings" : {}
         }
     },
     "processes": {
@@ -58,7 +68,8 @@
                 "process_name" : "MakeLinkConstraints",
                 "Parameters" : {
                     "model_part_name" : "root",
-                    "node_pairs" : [[2, 3]]
+                    "node_pairs" : [[2, 3]],
+                    "@include_json" : "move_mesh_flag.json"
                 }
             }
         ],

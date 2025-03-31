@@ -54,7 +54,7 @@ try:
     constraint_surface = pyplot.Circle(deformed_configuration[2],
                                        numpy.linalg.norm(initial_configuration[1] - initial_configuration[2]),
                                        edgecolor = "#aaaaaaff",
-                                       facecolor = "#aaaaaa11",
+                                       facecolor = "#ffffffff",
                                        label = "constraint surface")
     axes.add_patch(constraint_surface)
     index_buffer: list[list[int]] = [[0, 1, 3, 2]]
