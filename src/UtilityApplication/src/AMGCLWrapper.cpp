@@ -42,7 +42,6 @@
 
 // STL includes
 #include <sstream> // stringstream
-#include <optional> // optional
 #include <variant> // variant
 
 
@@ -51,10 +50,28 @@ namespace Kratos {
 
 #ifdef AMGCL_GPGPU
 vex::Context& GetVexCLContext() {
-    static vex::Context ctx(vex::Filter::Env);
     [[maybe_unused]] static bool run_once = [](){
         return true;
     }();
+
+    // Pick a strategy for device selection. If any
+    // OCL_* environment variables are defined, use
+    // the environment filter, otherwise fall back to
+    // GPU.
+
+    for (const auto& ocl_variable : {std::string("OCL_PLATFORM"),
+                                     std::string("OCL_VENDOR"),
+                                     std::string("OCL_DEVICE"),
+                                     std::string("OCL_TYPE"),
+                                     std::string("OCL_MAX_DEVICES"),
+                                     std::string("OCL_POSITION")}) {
+        if (std::getenv(ocl_variable.c_str())) {
+            static vex::Context ctx(vex::Filter::Env);
+            return ctx;
+        }
+    }
+
+    static vex::Context ctx(vex::Filter::GPU);
     return ctx;
 }
 
@@ -427,7 +444,7 @@ bool AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
     KRATOS_WARNING_IF("AMGCLWrapper", 1 <= mpImpl->mVerbosity && mpImpl->mTolerance <= residual)
         << "Failed to converge. Residual: " << residual << "\n";
 
-    if(1 < mpImpl->mVerbosity) {
+    if(2 <= mpImpl->mVerbosity) {
         std::cout << "Iterations: " << iteration_count << "\n"
                   << "Error: " << residual << "\n"
                   << "\n";
@@ -492,7 +509,7 @@ void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(Sp
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
 
     mpImpl->mDoFCount = FindBlockSize<TSparseSpace>(rModelPart, rDofs);
-    KRATOS_INFO_IF("AMGCLWrapper", 1 <= mpImpl->mVerbosity)
+    KRATOS_INFO_IF("AMGCLWrapper", 2 <= mpImpl->mVerbosity)
         << "block size: " << mpImpl->mDoFCount << "\n";
 
     // Construct solver and matrix adapter
@@ -550,9 +567,6 @@ void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(Sp
 
     #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE
     #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE
-
-    KRATOS_INFO_IF("AMGCLWrapper", 1 < mpImpl->mVerbosity)
-        << "Block DoFs: " << mpImpl->mDoFCount << "\n";
     KRATOS_CATCH("")
 }
 
