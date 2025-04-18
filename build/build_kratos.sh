@@ -9,8 +9,8 @@ print_help() {
     echo "-C                    : clean build and install directories, then exit"
     echo "-b build_path         : path to the build directory (created if it does not exist yet)"
     echo "-i install_path       : path to the install directory (created if it does not exist yet)"
-    echo "-t build_type         : build type [FullDebug, Debug, Release, RelWithDebInfo] (Default: FullDebug)"
-    echo "-c compiler_name      : compiler family [gcc, clang, icc] (Default: gcc)"
+    echo "-t build_type         : build type [FullDebug, Debug, Release, RelWithDebInfo, Custom] (Default: FullDebug)"
+    echo "-c compiler_name      : compiler family [gcc, clang, intel] (Default: gcc)"
     echo "-o option             : options/arguments to pass on to CMake. Semicolon (;) delimited, or defined repeatedly."
     echo "-a application_name   : name or path of the application to build (can be passed repeatedly to add more applications)"
     echo
@@ -93,7 +93,8 @@ while getopts ":h C b: i: t: c: o: a:" arg; do
             if ! [[ "${build_type}" == "FullDebug"           \
                      || "${build_type}" == "Debug"           \
                      || "${build_type}" == "RelWithDebInfo"  \
-                     || "${build_type}" == "Release" ]]; then
+                     || "${build_type}" == "Release"         \
+                     || "${build_type}" == "Custom" ]]; then
                 echo "Error: invalid build type: ${build_type}"
                 print_help
                 exit 1
@@ -107,9 +108,12 @@ while getopts ":h C b: i: t: c: o: a:" arg; do
             elif [ "$compiler_family" = "clang" ]; then
                 export CC="$(which clang)"
                 export CXX="$(which clang++)"
-            elif [ "$compiler_family" = "icc" ]; then
-                export CC="$(which icc)"
-                export CXX="$(which i++)"
+            elif [ "$compiler_family" = "intel" ]; then
+                if [ -f "/opt/intel/oneapi/setvars.sh" ] ; then
+                    source "/opt/intel/oneapi/setvars.sh"
+                fi
+                export CC="$(which icx)"
+                export CXX="$(which icpx)"
             else
                 echo "Error: unsupported compiler family: $compiler_family"
                 exit 1
