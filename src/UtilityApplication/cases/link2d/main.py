@@ -79,7 +79,41 @@ try:
                                                              label = "deformed configuration"))
         axes.add_patch(deformed_configuration_patches[-1])
 
-    axes.legend(handles = [constraint_surface] + initial_configuration_patches + deformed_configuration_patches,
+    # Plot dirichlet nodes.
+    dirichlet_patches = []
+    node: KratosMultiphysics.Node
+    for node in root_model_part.GetSubModelPart("dirichlet").Nodes:
+        coordinates = [node.X, node.Y, node.Z]
+        dirichlet_patches.append(pyplot.Rectangle([component - 5e-2 for component in coordinates],
+                                              1e-1,
+                                              1e-1,
+                                              edgecolor = "#000000",
+                                              facecolor = "#ffffff",
+                                              linewidth = 2,
+                                              label = "fixed nodes"))
+        axes.add_patch(dirichlet_patches[-1])
+
+    # Plot neumann nodes.
+    condition: KratosMultiphysics.Condition
+    neumann_patches = []
+    for condition in root_model_part.GetSubModelPart("neumann").Conditions:
+        neumann_value = condition[KratosMultiphysics.StructuralMechanicsApplication.POINT_LOAD]
+        node = condition.GetGeometry()[0]
+        displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+        neumann_patches.append(pyplot.Arrow(node.X + displacement[0], node.Y + displacement[1],
+                                            neumann_value[0], neumann_value[1],
+                                            width = 2e-1,
+                                            edgecolor = "#be1e3cff",
+                                            facecolor = "#be1e3cff",
+                                            linewidth = 2,
+                                            label = "load"))
+        axes.add_patch(neumann_patches[-1])
+
+    axes.legend(handles = [constraint_surface]
+                        + [initial_configuration_patches[0]]
+                        + [deformed_configuration_patches[0]]
+                        + [dirichlet_patches[0]]
+                        + [neumann_patches[0]],
                 ncol = 1)
     axes.autoscale()
     axes.set_aspect("equal")
