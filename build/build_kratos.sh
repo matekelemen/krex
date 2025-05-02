@@ -110,7 +110,7 @@ while getopts ":h C b: i: t: c: o: a:" arg; do
                 export CXX="$(which clang++)"
             elif [ "$compiler_family" = "intel" ]; then
                 if [ -f "/opt/intel/oneapi/setvars.sh" ] ; then
-                    source "/opt/intel/oneapi/setvars.sh"
+                    source "/opt/intel/oneapi/setvars.sh" intel64
                 fi
                 export CC="$(which icx)"
                 export CXX="$(which icpx)"
@@ -168,7 +168,7 @@ fi
 
 # Check whether intel mkl is available
 if [ -f "/opt/intel/oneapi/setvars.sh" ] && [ "$compiler_family" != "clang" ]; then
-    source "/opt/intel/oneapi/setvars.sh"
+    source "/opt/intel/oneapi/setvars.sh" intel64
     mkl_flag="-DUSE_EIGEN_MKL:BOOl=ON"
 fi
 
