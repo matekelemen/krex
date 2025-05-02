@@ -13,13 +13,10 @@ Begin Elements SmallDisplacementElement3D4N
 End Elements
 
 Begin Conditions PointLoadCondition3D1N
-    1 0 4
+    1 0 2
 End Conditions
 
 Begin SubModelPart neumann
-    Begin SubModelPartNodes
-        4
-    End SubModelPartNodes
     Begin SubModelPartConditions
         1
     End SubModelPartConditions
@@ -28,7 +25,6 @@ End SubModelPart
 Begin SubModelPart dirichlet
     Begin SubModelPartNodes
         1
-        2
-        3
+        4
     End SubModelPartNodes
 End SubModelPart

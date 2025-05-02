@@ -42,7 +42,6 @@
 
 // STL includes
 #include <sstream> // stringstream
-#include <optional> // optional
 #include <variant> // variant
 
 
@@ -51,10 +50,28 @@ namespace Kratos {
 
 #ifdef AMGCL_GPGPU
 vex::Context& GetVexCLContext() {
-    static vex::Context ctx(vex::Filter::Env);
     [[maybe_unused]] static bool run_once = [](){
         return true;
     }();
+
+    // Pick a strategy for device selection. If any
+    // OCL_* environment variables are defined, use
+    // the environment filter, otherwise fall back to
+    // GPU.
+
+    for (const auto& ocl_variable : {std::string("OCL_PLATFORM"),
+                                     std::string("OCL_VENDOR"),
+                                     std::string("OCL_DEVICE"),
+                                     std::string("OCL_TYPE"),
+                                     std::string("OCL_MAX_DEVICES"),
+                                     std::string("OCL_POSITION")}) {
+        if (std::getenv(ocl_variable.c_str())) {
+            static vex::Context ctx(vex::Filter::Env);
+            return ctx;
+        }
+    }
+
+    static vex::Context ctx(vex::Filter::GPU);
     return ctx;
 }
 
@@ -233,7 +250,7 @@ struct AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::Impl
 
     // Block size computed in AMGCLWrapper::ProvideAdditionalData and
     // set in the settings passed to AMGCL.
-    std::size_t mDoFCount;
+    std::optional<std::size_t> mMaybeDoFCount;
 
     // Settings to be translated from Kratos::Parameters
     // to something that AMGCL uses.
@@ -308,6 +325,18 @@ AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::AMGCLWrapper(Parameters param
 {
     KRATOS_TRY
     Parameters default_parameters = this->GetDefaultParameters();
+    if (parameters.Has("block_size")) {
+        if (parameters["block_size"].Is<int>()) {
+            default_parameters.RemoveValue("block_size");
+            default_parameters.AddInt("block_size", 1);
+            mpImpl->mMaybeDoFCount = parameters["block_size"].Get<int>();
+        } else if (parameters["block_size"].Is<std::string>()) {
+            const std::string block_size_string = parameters["block_size"].Get<std::string>();
+            KRATOS_ERROR_IF_NOT(block_size_string != "auto")
+                << "\"block_size\" must either be \"auto\" or a positive integer";
+        }
+    }
+
     parameters.ValidateAndAssignDefaults(default_parameters);
 
     KRATOS_ERROR_IF_NOT(parameters["solver_type"].GetString() == "amgcl_wrapper" or parameters["solver_type"].GetString() == "UtilityApplication.amgcl_wrapper")
@@ -427,7 +456,7 @@ bool AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
     KRATOS_WARNING_IF("AMGCLWrapper", 1 <= mpImpl->mVerbosity && mpImpl->mTolerance <= residual)
         << "Failed to converge. Residual: " << residual << "\n";
 
-    if(1 < mpImpl->mVerbosity) {
+    if(2 <= mpImpl->mVerbosity) {
         std::cout << "Iterations: " << iteration_count << "\n"
                   << "Error: " << residual << "\n"
                   << "\n";
@@ -454,19 +483,66 @@ std::size_t FindBlockSize(const ModelPart& rModelPart,
                           ModelPart::DofsArrayType& rDofs)
 {
     KRATOS_TRY
-    std::size_t block_size = rModelPart.Nodes().empty() ? 0 : rModelPart.Nodes().front().GetDofs().size();
+    int old_ndof    = -1,
+        ndof        =  0,
+        block_size  =  0;
 
-    //const std::size_t system_size = rDofs.size();
-    //for (; 1 < block_size; --block_size) {
-    //    if (!(system_size % block_size)) {
-    //        break;
-    //    }
-    //}
+    if (!rModelPart.IsDistributed())
+    {
+        unsigned int old_node_id = rDofs.size() ? rDofs.begin()->Id() : 0;
+        for (auto it = rDofs.begin(); it!=rDofs.end(); it++) {
+            if(it->EquationId() < rDofs.size()) {
+                IndexType id = it->Id();
+                if(id != old_node_id) {
+                    old_node_id = id;
+                    if(old_ndof == -1) old_ndof = ndof;
+                    else if(old_ndof != ndof) { //if it is different than the block size is 1
+                        old_ndof = -1;
+                        break;
+                    }
 
-    if (rModelPart.IsDistributed()) {
-        std::size_t max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(block_size);
+                    ndof=1;
+                } else {
+                    ndof++;
+                }
+            }
+        }
 
-        if(block_size == 0) {
+        if(old_ndof == -1 || old_ndof != ndof)
+            block_size = 1;
+        else
+            block_size = ndof;
+
+    }
+    else //distribute
+    {
+        const std::size_t system_size = rDofs.size();
+        int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
+        unsigned int old_node_id = rDofs.size() ? rDofs.begin()->Id() : 0;
+        for (auto it = rDofs.begin(); it!=rDofs.end(); it++) {
+            if(it->EquationId() < system_size  && it->GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
+                IndexType id = it->Id();
+                if(id != old_node_id) {
+                    old_node_id = id;
+                    if(old_ndof == -1) old_ndof = ndof;
+                    else if(old_ndof != ndof) { //if it is different than the block size is 1
+                        old_ndof = -1;
+                        break;
+                    }
+
+                    ndof=1;
+                } else {
+                    ndof++;
+                }
+            }
+        }
+
+        if(old_ndof != -1)
+            block_size = ndof;
+
+        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(block_size);
+
+        if( old_ndof == -1) {
             block_size = max_block_size;
         }
 
@@ -491,9 +567,10 @@ void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(Sp
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
 
-    mpImpl->mDoFCount = FindBlockSize<TSparseSpace>(rModelPart, rDofs);
-    KRATOS_INFO_IF("AMGCLWrapper", 1 <= mpImpl->mVerbosity)
-        << "block size: " << mpImpl->mDoFCount << "\n";
+    if (!mpImpl->mMaybeDoFCount.has_value())
+        mpImpl->mMaybeDoFCount = FindBlockSize<TSparseSpace>(rModelPart, rDofs);
+    KRATOS_INFO_IF("AMGCLWrapper", 2 <= mpImpl->mVerbosity)
+        << "block size: " << mpImpl->mMaybeDoFCount.value() << "\n";
 
     // Construct solver and matrix adapter
     mpImpl->mpA = &rA;
@@ -504,7 +581,7 @@ void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(Sp
         mpImpl->mSolverBundle = Bundle(rA, mpImpl->mAMGCLSettings)
 
     #define KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE(BACKEND_TEMPLATE, BACKEND_SCALAR)                          \
-        switch (mpImpl->mDoFCount) {                                                                        \
+        switch (mpImpl->mMaybeDoFCount.value()) {                                                           \
             case 1: {                                                                                       \
                 KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 1);  \
                 break;                                                                                      \
@@ -529,8 +606,8 @@ void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(Sp
                 KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE(BACKEND_TEMPLATE, BACKEND_SCALAR, 6);  \
                 break;                                                                                      \
             }                                                                                               \
-            default: KRATOS_ERROR << "unsupported block size: " << mpImpl->mDoFCount << "\n";               \
-        } // switch mpImpl->mDoFCount
+            default: KRATOS_ERROR << "unsupported block size: " << mpImpl->mMaybeDoFCount.value() << "\n";  \
+        } // switch mpImpl->mMaybeDoFCount.value()
 
     // Construct the solver
     switch (mpImpl->mBackendType) {
@@ -550,9 +627,6 @@ void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(Sp
 
     #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE
     #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE
-
-    KRATOS_INFO_IF("AMGCLWrapper", 1 < mpImpl->mVerbosity)
-        << "Block DoFs: " << mpImpl->mDoFCount << "\n";
     KRATOS_CATCH("")
 }
 
@@ -570,6 +644,7 @@ AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters()
     "verbosity" : 0,
     "tolerance" : 1e-6,
     "backend" : "cpu",
+    "block_size" : "auto",
     "amgcl_settings" : {
         "precond" : {
             "class" : "amg",
@@ -625,7 +700,7 @@ void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::PrintData(std::ostream& 
 {
     rStream
         << "tolerance     : " << mpImpl->mTolerance << "\n"
-        << "DoF size      : " << mpImpl->mDoFCount << "\n"
+        << "DoF size      : " << (mpImpl->mMaybeDoFCount.has_value() ? std::to_string(mpImpl->mMaybeDoFCount.value()) : "auto") << "\n"
         << "verbosity     : " << mpImpl->mVerbosity << "\n"
         << "AMGCL settings: "
         ;
