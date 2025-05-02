@@ -130,7 +130,7 @@ public:
         SparseMatrix& rA,
         Vector& rX,
         Vector& rB,
-        typename ModelPart::DofsArrayType& rDofSet,
+        ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart
     ) override;
 

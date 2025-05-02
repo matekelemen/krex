@@ -483,10 +483,10 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
 void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
-                                                                                Vector& rX,
-                                                                                Vector& rB,
-                                                                                ModelPart::DofsArrayType& rDofs,
-                                                                                ModelPart& rModelPart)
+                                                                              Vector& rX,
+                                                                              Vector& rB,
+                                                                              ModelPart::DofsArrayType& rDofs,
+                                                                              ModelPart& rModelPart)
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
