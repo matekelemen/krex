@@ -1,4 +1,18 @@
 {
-    "solver_type" : "gauss_seidel",
-    "max_iterations" : 6
+    "solver_type": "amgcl_wrapper",
+    "backend": "cpu",
+    "amgcl_settings": {
+        "precond": {
+            "class": "amg",
+            "max_levels" : 1,
+            "relax": {
+                "type": "gauss_seidel"
+            },
+            "npre": 3,
+            "npost": 3
+        },
+        "solver": {
+            "type": "preonly"
+        }
+    }
 }
