@@ -1,8 +1,9 @@
 {
     "solver_type": "amgcl_wrapper",
     "verbosity": 1,
-    "tolerance": 5e-1,
+    "tolerance": 2e-1,
     "backend": "gpu",
+    "block_size" : 3,
     "amgcl_settings": {
         "precond": {
             "class": "amg",
@@ -16,14 +17,14 @@
                     "block_size": 3
                 }
             },
-            "coarse_enough": 5e3,
+            "coarse_enough": 5e2,
             "npre": 2,
             "npost": 2
         },
         "solver": {
             "type": "cg",
-            "maxiter": 500,
-            "tol": 5e-1
+            "maxiter": 100,
+            "tol": 2e-1
         }
     }
 }
