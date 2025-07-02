@@ -209,6 +209,7 @@ if ! cmake                                                  \
     "$mpi_flag"                                             \
     "$mkl_flag"                                             \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
+    "-DUSE_EIGEN_SUITESPARSE:BOOL=ON"                       \
     $(echo $cmake_arguments | tr '\;' '\n')                 \
     ; then
     exit 1
