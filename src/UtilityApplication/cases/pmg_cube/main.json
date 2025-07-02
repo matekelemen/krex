@@ -154,6 +154,16 @@
                 }
             },
             {
+                "kratos_module" : "KratosMultiphysics.UtilityApplication",
+                "python_module" : "MultifreedomConstraintToElementProcess",
+                "process_name" : "MultifreedomConstraintToElementProcess",
+                "Parameters" : {
+                    "input_model_part_name"      : "root",
+                    "output_model_part_name"     : "mfcs",
+                    "interval"                   : [-1.0, "End"]
+                }
+            },
+            {
                 "python_module" : "utilities.GenerateXDMFProcess",
                 "process_name" : "GenerateXDMFProcess",
                 "kratos_module" : "KratosMultiphysics.WRApplication",
@@ -197,26 +207,23 @@
                         "list_of_variables" : ["POINT_LOAD"]
                     }
                 }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.HDF5Application",
+                "python_module" : "single_mesh_temporal_output_process",
+                "process_name" : "SingleMeshTemporalOutputProcess",
+                "Parameters" : {
+                    "model_part_name" : "mfcs",
+                    "file_settings" : {
+                        "file_name" : "mfcs_<time>.h5",
+                        "file_access_mode" : "truncate"
+                    },
+                    "element_data_value_settings" : {
+                        "list_of_variables" : ["CONSTRAINT_SCALE_FACTOR"]
+                    }
+                }
             }
-        ],
-        "vtk_output" : [{
-            "python_module" : "vtk_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "VtkOutputProcess",
-            "help"          : "This process writes postprocessing files for Paraview",
-            "Parameters"    : {
-                "model_part_name"                    : "root",
-                "output_control_type"                : "step",
-                "output_interval"                    : 1,
-                "file_format"                        : "binary",
-                "output_precision"                   : 7,
-                "output_sub_model_parts"             : false,
-                "output_path"                        : "vtk",
-                "save_output_files_in_folder"        : true,
-                "nodal_solution_step_data_variables" : ["DISPLACEMENT", "REACTION"],
-                "condition_data_value_variables"      : ["POINT_LOAD"]
-            }
-        }]
+        ]
     },
     "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
 }

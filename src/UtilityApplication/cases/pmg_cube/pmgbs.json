@@ -2,31 +2,34 @@
     "type": "p_multigrid",
     "advanced_settings": {
         "tolerance": 1e-6,
-        "max_iterations": 1e1,
+        "max_iterations": 3e1,
         "verbosity": 3,
-        "diagonal_scaling": "none",
+        "diagonal_scaling": "max",
         "smoother_settings": {
-            "@include_json" : "amgclsmoother.json"
+            "solver_type" : "mkl_ilu0",
+            "iterations" : 4
         },
         "linear_solver_settings": {
-            "@include_json" : "amgcl.json"
+            "@include_json" : "amgclwrapper.json"
         },
         "constraint_imposition_settings": {
-            "method": "augmented_lagrange",
-            "penalty_factor": 1e12,
-            "max_iterations": 5,
-            "tolerance": 1e-6,
-            "verbosity": 2
+            "method" : "master_slave",
+            "dependent_solver_settings" : {
+                "@include_json" : "standalone_amgcl_wrapper_dependent.json"
+            },
+            "independent_solver_settings" : {
+                "solver_type" : "pardiso_lu"
+            }
         },
         "coarse_hierarchy_settings": {
-            "precision": "double",
+            "precision": "single",
             "max_depth": 1,
-            "verbosity": 2,
+            "verbosity": 3,
             "constraint_imposition_settings": {
                 "method": "augmented_lagrange",
-                "penalty_factor": 1e12,
+                "penalty_factor": "1e-1 * max",
                 "max_iterations": 5,
-                "tolerance": 1e-6,
+                "tolerance": 1e-7,
                 "verbosity": 1
             }
         }
