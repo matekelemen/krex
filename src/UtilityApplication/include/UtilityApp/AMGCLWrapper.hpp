@@ -72,16 +72,7 @@ namespace Kratos {
  *          - "tolerance": relative tolerance to check convergence after solving. Note that
  *                         this setting does not get passed on to AMGCL. Set the tolerance
  *                         directly in @a "amgcl_settings" to control AMGCL's tolerance.
- *          - "gpgpu_backend": [@a "" (default), @a "double", or "float"] control what
- *                             backend AMGCL should use. Available options are:
- *                             - @a "": use the built-in double precision backend that runs
- *                                      on the CPU. This is the default setting (no GPU).
- *                             - @a "double": use a double precision GPU backend. The exact
- *                                            type of backend depends on what Kratos was
- *                                            compiled with (controlled by @a AMGCL_GPGPU_BACKEND).
- *                             - @a "float": use a single precision GPU backend. The exact
- *                                           type of backend depends on what Kratos was
- *                                           compiled with (controlled by @a AMGCL_GPGPU_BACKEND).
+ *          - "backend":   [@p "cpu" (default), @p "gpu"].
  *          - "amgcl_settings": subparameter tree passed on directly to AMGCL. See AMGCL's
  *                              documentation for available options.
  */
@@ -118,9 +109,16 @@ public:
     /// @copydoc LinearSolver::Solve
     bool Solve(SparseMatrix& rA, DenseMatrix& rX, DenseMatrix& rB) override;
 
-    void  PrintInfo(std::ostream& rOStream) const override;
+    /// @copydoc LinearSolver::PerformSolutionStep
+    bool PerformSolutionStep(SparseMatrix& rA, Vector& rX, Vector& rB) override;
 
-    void  PrintData(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const override;
+
+    void PrintData(std::ostream& rOStream) const override;
+
+    void InitializeSolutionStep(SparseMatrix& rA,
+                                Vector& rX,
+                                Vector& rB) override;
 
     /// @copydoc LinearSolver::AdditionalPhysicalDataIsNeeded
     bool AdditionalPhysicalDataIsNeeded() override;
@@ -130,7 +128,7 @@ public:
         SparseMatrix& rA,
         Vector& rX,
         Vector& rB,
-        typename ModelPart::DofsArrayType& rDofSet,
+        ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart
     ) override;
 

@@ -4,7 +4,7 @@ script_name="$(basename ${BASH_SOURCE[0]})"
 
 print_help() {
     echo "$script_name - Configure, build, and install KratosMultiphysics."
-    echo "Usage: $script_name [OPTIONS [ARGUMENT]]"
+    echo "Usage: $script_name [-h] [-C] [-b <build-dir>] [-i <install-dir>] [-t <build-type>] [-j <job-count>] [-a <app-name>] [-c <compiler-name>] [-o <cmake-opt>]"
     echo "-h                    : print this help and exit"
     echo "-C                    : clean build and install directories, then exit"
     echo "-b build_path         : path to the build directory (created if it does not exist yet)"
@@ -17,7 +17,7 @@ print_help() {
     echo "By default, Kratos is installed to the site-packages directory of the available python"
     echo "interpreter. This makes KratosMultiphysics and its applications immediately available from"
     echo "anywhere on the system without having to append PYTHONPATH, provided that the same interpreter"
-    echo "is used. Note however, that it is recommend to use a virtual python environment to avoid tainting"
+    echo "is used. Note however, that it is recommended to use a virtual python environment to avoid tainting"
     echo "the system python."
     echo
     echo "Recommended build tools:"
@@ -30,14 +30,13 @@ if ! command -v python3 &>/dev/null; then
     echo "Error: $script_name requires python3, but could not find it on the system"
     exit 1
 fi
-
+# Function for getting the module paths associated with the current interpreter.
 get_site_packages_dir() {
     echo $(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 }
 
-# Utility variables
-# Path to the directory containing this script
-# (assumed to be kratos_repo_root/scripts)
+# Utility variables.
+# Path to the directory containing this script.
 script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 krex_source_dir="$(dirname "${script_dir}")"    # <== path to the krex repo root
@@ -110,7 +109,7 @@ while getopts ":h C b: i: t: c: o: a:" arg; do
                 export CXX="$(which clang++)"
             elif [ "$compiler_family" = "intel" ]; then
                 if [ -f "/opt/intel/oneapi/setvars.sh" ] ; then
-                    source "/opt/intel/oneapi/setvars.sh"
+                    source "/opt/intel/oneapi/setvars.sh" intel64
                 fi
                 export CC="$(which icx)"
                 export CXX="$(which icpx)"
@@ -130,7 +129,7 @@ while getopts ":h C b: i: t: c: o: a:" arg; do
             add_app "${OPTARG}"
             ;;
         \?) # Invalid argument
-            echo "Error: unrecognized argument: ${OPTARG}"
+            echo "Error: unrecognized argument: -${OPTARG}"
             print_help
             exit 1
     esac
@@ -142,6 +141,9 @@ if [ -d "$build_dir" ]; then
         echo "Error: user '$(hostname)' has no write access to the build directory: '$build_dir'"
         exit 1
     fi
+
+    rm -f "$build_dir/CMakeCache.txt"
+    rm -rf "$build_dir/CMakeFiles"
 fi
 
 # Check write access to the install dir
@@ -168,13 +170,18 @@ fi
 
 # Check whether intel mkl is available
 if [ -f "/opt/intel/oneapi/setvars.sh" ] && [ "$compiler_family" != "clang" ]; then
-    source "/opt/intel/oneapi/setvars.sh"
+    source "/opt/intel/oneapi/setvars.sh" intel64
     mkl_flag="-DUSE_EIGEN_MKL:BOOl=ON"
 fi
 
 # Check whether MPI is available
 if command -v mpirun $> /dev/null; then
     mpi_flag="-DUSE_MPI:BOOL=ON"
+fi
+
+# Create the build directory if it does not exist yet
+if [ ! -d "$build_dir" ]; then
+    mkdir -p "$build_dir"
 fi
 
 # Check optional dependency - ninja
@@ -187,11 +194,10 @@ if command -v ccache &>/dev/null; then
     ccache_flag="-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=ccache"
 fi
 
-# Clear CMake cache
-rm -f "$build_dir/CMakeCache.txt"
-
 # Generate with CMake
 export KRATOS_INSTALL_PYTHON_USING_LINKS="ON"
+
+# Configure
 if ! cmake                                                  \
     "-H$source_dir"                                         \
     "-B$build_dir"                                          \
@@ -203,6 +209,7 @@ if ! cmake                                                  \
     "$mpi_flag"                                             \
     "$mkl_flag"                                             \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
+    "-DUSE_EIGEN_SUITESPARSE:BOOL=ON"                       \
     $(echo $cmake_arguments | tr '\;' '\n')                 \
     ; then
     exit 1

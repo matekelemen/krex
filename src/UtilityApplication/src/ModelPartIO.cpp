@@ -122,7 +122,9 @@ void HDF5ModelPartIO::Read(Ref<ModelPart> rTarget) const
     Kratos::HDF5::File::Pointer p_file(new Kratos::HDF5::File(
         rTarget.GetCommunicator().GetDataCommunicator(),
         file_parameters));
-    Kratos::HDF5::ModelPartIO(p_file, "/ModelData").ReadModelPart(rTarget);
+    Kratos::HDF5::ModelPartIO(
+        Parameters(R"("prefix" : "/ModelData")"),
+        p_file).ReadModelPart(rTarget);
 }
 
 
@@ -137,7 +139,9 @@ void HDF5ModelPartIO::Write(Ref<const ModelPart> rSource)
         rSource.GetCommunicator().GetDataCommunicator(),
         file_parameters));
     Ref<ModelPart> omfg = const_cast<Ref<ModelPart>>(rSource);
-    Kratos::HDF5::ModelPartIO(p_file, "/ModelData").WriteModelPart(omfg);
+    Kratos::HDF5::ModelPartIO(
+        Parameters(R"("prefix" : "/ModelData")"),
+        p_file).WriteModelPart(omfg);
 }
 
 

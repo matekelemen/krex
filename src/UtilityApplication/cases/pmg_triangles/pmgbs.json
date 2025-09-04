@@ -4,13 +4,13 @@
         "tolerance": 1e-6,
         "max_iterations": 25,
         "verbosity": 3,
-        "diagonal_scaling": "none",
+        "diagonal_scaling": "max",
+        "reordering" : "reverse_cuthill_mckee",
         "smoother_settings": {
-            "solver_type" : "gauss_seidel",
-            "max_iterations" : 3
+            "@include_json" : "../pmg_cube/amgclsmoother.json"
         },
         "linear_solver_settings": {
-            "@include_json" : "../pmg_cube/amgcl.json"
+            "@include_json" : "../pmg_cube/amgclwrapper.json"
         },
         "constraint_imposition_settings": {
             "method": "none"

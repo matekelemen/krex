@@ -332,8 +332,9 @@ AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::AMGCLWrapper(Parameters param
             mpImpl->mMaybeDoFCount = parameters["block_size"].Get<int>();
         } else if (parameters["block_size"].Is<std::string>()) {
             const std::string block_size_string = parameters["block_size"].Get<std::string>();
-            KRATOS_ERROR_IF_NOT(block_size_string != "auto")
-                << "\"block_size\" must either be \"auto\" or a positive integer";
+            KRATOS_ERROR_IF_NOT(block_size_string == "auto")
+                << "\"block_size\" must either be \"auto\" or a positive integer, not "
+                << "\"" << block_size_string << "\"";
         }
     }
 
@@ -399,9 +400,9 @@ AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::~AMGCLWrapper()
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-bool AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
-                                                              Vector& rX,
-                                                              Vector& rB)
+bool AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::PerformSolutionStep(SparseMatrix& rA,
+                                                                            Vector& rX,
+                                                                            Vector& rB)
 {
     KRATOS_TRY
 
@@ -462,8 +463,20 @@ bool AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
                   << "\n";
     }
 
-    return residual < mpImpl->mTolerance ? true : false;
+    return residual < mpImpl->mTolerance;
     KRATOS_CATCH("")
+}
+
+
+template<class TSparseSpace,
+         class TDenseSpace,
+         class TReorderer>
+bool AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
+                                                              Vector& rX,
+                                                              Vector& rB)
+{
+    this->InitializeSolutionStep(rA, rX, rB);
+    return this->PerformSolutionStep(rA, rX, rB);
 }
 
 
@@ -558,17 +571,15 @@ std::size_t FindBlockSize(const ModelPart& rModelPart,
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
-                                                                              Vector& rX,
-                                                                              Vector& rB,
-                                                                              ModelPart::DofsArrayType& rDofs,
-                                                                              ModelPart& rModelPart)
+void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::InitializeSolutionStep(SparseMatrix& rA,
+                                                                               Vector& rX,
+                                                                               Vector& rB)
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE(KRATOS_CODE_LOCATION);
 
     if (!mpImpl->mMaybeDoFCount.has_value())
-        mpImpl->mMaybeDoFCount = FindBlockSize<TSparseSpace>(rModelPart, rDofs);
+        mpImpl->mMaybeDoFCount = 1;
     KRATOS_INFO_IF("AMGCLWrapper", 2 <= mpImpl->mVerbosity)
         << "block size: " << mpImpl->mMaybeDoFCount.value() << "\n";
 
@@ -627,6 +638,22 @@ void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(Sp
 
     #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE
     #undef KRATOS_CONSTRUCT_AMGCL_SOLVER_BUNDLE_WITH_BLOCK_SIZE
+    KRATOS_CATCH("")
+}
+
+
+template<class TSparseSpace,
+         class TDenseSpace,
+         class TReorderer>
+void AMGCLWrapper<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
+                                                                              Vector& rX,
+                                                                              Vector& rB,
+                                                                              ModelPart::DofsArrayType& rDofs,
+                                                                              ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    if (!mpImpl->mMaybeDoFCount.has_value())
+        mpImpl->mMaybeDoFCount = FindBlockSize<TSparseSpace>(rModelPart, rDofs);
     KRATOS_CATCH("")
 }
 
