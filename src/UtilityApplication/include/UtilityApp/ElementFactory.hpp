@@ -40,7 +40,7 @@ void ConvertGeometries(Ref<const ModelPart::GeometryContainerType> rSourceContai
     std::size_t id = block_for_each<MaxReduction<std::size_t>>(MakeProxy<location>(rTarget),
                                                                [](const auto& rProxy) {return rProxy.GetEntity().Id();});
 
-    for (auto it_source=rSourceContainer.Geometries().ptr_begin(); it_source!=rSourceContainer.Geometries().ptr_end(); ++it_source) {
+    for (auto it_source=rSourceContainer.ptr_begin(); it_source!=rSourceContainer.ptr_end(); ++it_source) {
         if (rPredicate(**it_source)) {
             if constexpr (std::is_same_v<FactoryReturnType,Element::Pointer>) {
                 rTarget.AddElement(rFactoryFunctor(++id, *it_source));
