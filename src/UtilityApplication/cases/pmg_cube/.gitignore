@@ -17,9 +17,7 @@
 
 !pmgbs.json
 !defaultbs.json
-!amgcl.json
-!amgclsmoother.json
-!amgclwrapper.json
+!*amgcl*.json
 !gauss_seidel.json
 !pardiso.json
 !printmatrix.json

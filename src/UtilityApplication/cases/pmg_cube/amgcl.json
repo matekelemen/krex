@@ -1,6 +1,10 @@
 {
     "solver_type" : "amgcl",
-    "block_size" : 3,
-    "tolerance" : 1e-1,
-    "verbosity" : 1
+    "smoother_type" : "ilut",
+    "krylov_type" : "cg",
+    "pre_sweeps" : 2,
+    "post_sweeps" : 2,
+    "block_size" : "auto",
+    "tolerance" : 2e-1,
+    "verbosity" : 3
 }

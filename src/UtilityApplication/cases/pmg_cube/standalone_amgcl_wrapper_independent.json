@@ -1,0 +1,30 @@
+{
+    "solver_type": "amgcl_wrapper",
+    "verbosity": 3,
+    "tolerance": 1e-6,
+    "backend": "cpu",
+    "block_size" : 3,
+    "amgcl_settings": {
+        "precond": {
+            "class": "amg",
+            "relax": {
+                "type": "ilu0"
+            },
+            "coarsening": {
+                "type": "aggregation",
+                "aggr": {
+                    "eps_strong": 0.08,
+                    "block_size": 3
+                }
+            },
+            "coarse_enough": 333,
+            "npre": 1,
+            "npost": 1
+        },
+        "solver": {
+            "type": "cg",
+            "maxiter": 100,
+            "tol": 1e-6
+        }
+    }
+}

@@ -6,8 +6,7 @@
         "verbosity": 3,
         "diagonal_scaling": "max",
         "smoother_settings": {
-            "solver_type" : "mkl_ilu0",
-            "iterations" : 4
+            "@include_json" : "amgclsmoother.json"
         },
         "linear_solver_settings": {
             "@include_json" : "amgclwrapper.json"
@@ -18,7 +17,7 @@
                 "@include_json" : "standalone_amgcl_wrapper_dependent.json"
             },
             "independent_solver_settings" : {
-                "solver_type" : "pardiso_lu"
+                "@include_json" : "standalone_amgcl_wrapper_dependent.json"
             }
         },
         "coarse_hierarchy_settings": {
