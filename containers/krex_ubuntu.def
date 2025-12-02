@@ -11,13 +11,21 @@ From: krex_source_ubuntu.sif
 
     # Build
     cd krex/build
-    ./build_kratos.sh -t Release -c gcc     \
-        -a StructuralMechanicsApplication   \
-        -a FluidDynamicsApplication         \
-        -a LinearSolversApplication         \
-        -a MappingApplication               \
-        -a MetisApplication                 \
-        -a CoSimulationApplication          \
-        -a MeshMovingApplication            \
-        -a HDF5Application                  \
-        -a ../src/WRApplication
+    ./build_kratos.sh                                       \
+        -t RelWithDebInfo                                   \
+        -c gcc                                              \
+        -m                                                  \
+        -s                                                  \
+        -a StructuralMechanicsApplication                   \
+        -a FluidDynamicsApplication                         \
+        -a LinearSolversApplication                         \
+        -a MappingApplication                               \
+        -a MetisApplication                                 \
+        -a CoSimulationApplication                          \
+        -a MeshMovingApplication                            \
+        -a HDF5Application                                  \
+        -a ../src/WRApplication                             \
+        -o -DTRILINOS_LIBRARY_PREFIX="trilinos_"            \
+        -o -DTRILINOS_INCLUDE_DIR=/usr/include/trilinos     \
+        -o -DTRILINOS_LIBRARY_DIR=/usr/lib/x86_64-linux-gnu \
+        -o -DKRATOS_BUILD_TESTING=OFF

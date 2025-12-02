@@ -11,4 +11,4 @@ From: krex_base_ubuntu.sif
     cd git
 
     # Krex
-    git clone https://github.com/matekelemen/krex.git krex --depth 1 --recursive
+    git clone https://github.com/matekelemen/krex.git krex --branch winsentvalid --depth 1 --recursive
