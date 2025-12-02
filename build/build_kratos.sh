@@ -4,8 +4,10 @@ script_name="$(basename ${BASH_SOURCE[0]})"
 
 print_help() {
     echo "$script_name - Configure, build, and install KratosMultiphysics."
-    echo "Usage: $script_name [-h] [-C] [-b <build-dir>] [-i <install-dir>] [-t <build-type>] [-j <job-count>] [-a <app-name>] [-c <compiler-name>] [-o <cmake-opt>]"
+    echo "Usage: $script_name [OPTION [ARGUMENT]]"
     echo "-h                    : print this help and exit"
+    echo "-m                    : compile with MKL support"
+    echo "-s                    : compile with SuiteSparse support"
     echo "-C                    : clean build and install directories, then exit"
     echo "-b build_path         : path to the build directory (created if it does not exist yet)"
     echo "-i install_path       : path to the install directory (created if it does not exist yet)"
@@ -27,7 +29,7 @@ print_help() {
 }
 
 if ! command -v python3 &>/dev/null; then
-    echo "Error: $script_name requires python3, but could not find it on the system"
+    >&2 echo "Error: $script_name requires python3, but could not find it on the system"
     exit 1
 fi
 # Function for getting the module paths associated with the current interpreter.
@@ -39,21 +41,22 @@ get_site_packages_dir() {
 # Path to the directory containing this script.
 script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-krex_source_dir="$(dirname "${script_dir}")"    # <== path to the krex repo root
-source_dir="${krex_source_dir}/src/kratos"      # <== path to the kratos repo root
-app_dir="${source_dir}/applications"            # <== path to the app directory of the kratos repo
+krex_source_dir="$(dirname "${script_dir}")"            # <== path to the krex repo root
+source_dir="${krex_source_dir}/src/kratos"              # <== path to the kratos repo root
+app_dir="${source_dir}/applications"                    # <== path to the app directory of the kratos repo
 
-generator="Unix Makefiles"                      # <== name of the generator program in CMake
-ccache_flag=""                                  # <== sets CXX_COMPILER_LAUNCHER in CMake to ccache if available
-mpi_flag="-DUSE_MPI:BOOL=OFF"                   # <== MPI flag to pass to CMake via USE_MPI
-mkl_flag="-DUSE_EIGEN_MKL:BOOL=OFF"             # <== toggle support for Intel MKL
+generator="Unix Makefiles"                              # <== name of the generator program in CMake
+ccache_flag=""                                          # <== sets CXX_COMPILER_LAUNCHER in CMake to ccache if available
+mpi_flag="-DUSE_MPI:BOOL=OFF"                           # <== MPI flag to pass to CMake via USE_MPI
+mkl_flag="-DUSE_EIGEN_MKL:BOOL=OFF"                     # <== toggle support for Intel MKL
+suite_sparse_flag="-DUSE_EIGEN_SUITESPARSE:BOOL=OFF"    # <== toggle support for SuiteSparse
 
 # Define default arguments
-build_type="Release".                           # <== passed to CMAKE_BUILD_TYPE
-build_dir="${source_dir}/build"                 # <== path to the build directory
-install_dir="$(get_site_packages_dir)"          # <== path to install kratos to
-clean=0                                         # <== clean the build and install directories, then exit
-cmake_arguments=""                              # <== additional arguments passed on to CMake
+build_type="Release".                                   # <== passed to CMAKE_BUILD_TYPE
+build_dir="${source_dir}/build"                         # <== path to the build directory
+install_dir="$(get_site_packages_dir)"                  # <== path to install kratos to
+clean=0                                                 # <== clean the build and install directories, then exit
+cmake_arguments=""                                      # <== additional arguments passed on to CMake
 
 # Function to append the list of applications to build
 add_app() {
@@ -66,17 +69,23 @@ add_app() {
     elif [ -d "${app_dir}/$1" ]; then   # <== kratos app name
         export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${app_dir}/$1;"
     else
-        echo "Error: cannot find application: $1"
+        >&2 echo "Error: cannot find application: $1"
         exit 1
     fi
 }
 
 # Parse CL arguments
-while getopts ":h C b: i: t: c: o: a:" arg; do
+while getopts ":h m s C b: i: t: c: o: a:" arg; do
     case $arg in
         h)  # Print help and exit without doing anything.
             print_help
             exit 0
+            ;;
+        m)  # Compile with MKL support.
+            mkl_flag="-DUSE_EIGEN_MKL:BOOL=ON"
+            ;;
+        s)  # Compile with SuiteSparse support.
+            suite_sparse_flag="-DUSE_EIGEN_SUITESPARSE:BOOL=ON"
             ;;
         C)  # Set clean flag
             clean=1
@@ -94,8 +103,8 @@ while getopts ":h C b: i: t: c: o: a:" arg; do
                      || "${build_type}" == "RelWithDebInfo"  \
                      || "${build_type}" == "Release"         \
                      || "${build_type}" == "Custom" ]]; then
-                echo "Error: invalid build type: ${build_type}"
                 print_help
+                >&2 echo "Error: invalid build type: ${build_type}"
                 exit 1
             fi
             ;;
@@ -114,7 +123,8 @@ while getopts ":h C b: i: t: c: o: a:" arg; do
                 export CC="$(which icx)"
                 export CXX="$(which icpx)"
             else
-                echo "Error: unsupported compiler family: $compiler_family"
+                print_help
+                >&2 echo "Error: unsupported compiler family: $compiler_family"
                 exit 1
             fi
             ;;
@@ -129,8 +139,8 @@ while getopts ":h C b: i: t: c: o: a:" arg; do
             add_app "${OPTARG}"
             ;;
         \?) # Invalid argument
-            echo "Error: unrecognized argument: -${OPTARG}"
             print_help
+            >&2 echo "Error: unrecognized argument: -${OPTARG}"
             exit 1
     esac
 done
@@ -138,7 +148,7 @@ done
 # Check write access to the build directory
 if [ -d "$build_dir" ]; then
     if ! [[ -w "$build_dir" ]]; then
-        echo "Error: user '$(hostname)' has no write access to the build directory: '$build_dir'"
+        >&2 echo "Error: user '$(hostname)' has no write access to the build directory: '$build_dir'"
         exit 1
     fi
 
@@ -149,7 +159,7 @@ fi
 # Check write access to the install dir
 if [ -d "$install_dir" ]; then
     if ! [[ -w "$install_dir" ]]; then
-        echo "Error: user '$(hostname)' has no write access to the install directory: '$install_dir'"
+        >&2 echo "Error: user '$(hostname)' has no write access to the install directory: '$install_dir'"
         exit 1
     fi
 fi
@@ -169,9 +179,13 @@ if [ $clean -ne 0 ]; then
 fi
 
 # Check whether intel mkl is available
-if [ -f "/opt/intel/oneapi/setvars.sh" ] && [ "$compiler_family" != "clang" ]; then
-    source "/opt/intel/oneapi/setvars.sh" intel64
-    mkl_flag="-DUSE_EIGEN_MKL:BOOl=ON"
+if [ ${mkl_flag} = "-DUSE_EIGEN_MKL:BOOL=ON" ]; then
+    if [ -f "/opt/intel/oneapi/setvars.sh" ] && [ "$compiler_family" != "clang" ]; then
+        source "/opt/intel/oneapi/setvars.sh" intel64
+    else
+        >&2 echo "Requested MKL support, but could not find it on the system."
+        exit 1
+    fi
 fi
 
 # Check whether MPI is available
@@ -208,8 +222,8 @@ if ! cmake                                                  \
     "$ccache_flag"                                          \
     "$mpi_flag"                                             \
     "$mkl_flag"                                             \
+    "$suite_sparse_flag"                                    \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
-    "-DUSE_EIGEN_SUITESPARSE:BOOL=ON"                       \
     $(echo $cmake_arguments | tr '\;' '\n')                 \
     ; then
     exit 1
