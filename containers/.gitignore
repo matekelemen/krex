@@ -1,4 +1,5 @@
 *
 !.gitignore
+!build.sh
 !build
 !*.def
