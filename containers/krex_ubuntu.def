@@ -1,9 +1,77 @@
-
-Bootstrap: localimage
-From: krex_source_ubuntu.sif
+BootStrap: docker
+From: ubuntu:24.04
 
 %post -c /bin/bash
     set -e
+
+    cd "$HOME"
+    if ! apt update -y && apt upgrade -y; then
+        exit $?
+    fi
+
+    if ! apt install -y --no-install-recommends                                                         \
+                     gnupg2                                                                             \
+                     software-properties-common                                                         \
+                     wget
+    then
+        exit $?
+    fi
+
+    # Extend package manager repository
+    wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB -P/tmp
+    apt-key add /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+    rm /tmp/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+    echo deb https://apt.repos.intel.com/oneapi all main > /etc/apt/sources.list.d/oneAPI.list
+    add-apt-repository ppa:git-core/ppa
+
+    # Install dependencies from the package manager
+    apt -y update
+    apt install -y --no-install-recommends                                                              \
+        build-essential                                                                                 \
+        ccache                                                                                          \
+        ninja-build                                                                                     \
+        libbenchmark-dev                                                                                \
+        libomp-dev                                                                                      \
+        cmake                                                                                           \
+        git                                                                                             \
+        intel-oneapi-mkl-devel                                                                          \
+        libboost-dev                                                                                    \
+        libhdf5-dev                                                                                     \
+        libhdf5-openmpi-dev                                                                             \
+        libmetis-dev                                                                                    \
+        libopenmpi-dev                                                                                  \
+        libscotch-dev                                                                                   \
+        trilinos-all-dev                                                                                \
+        libsuitesparse-dev                                                                              \
+        openmpi-bin                                                                                     \
+        python3-dev                                                                                     \
+        python3-h5py                                                                                    \
+        python3-numpy
+
+    cd "$HOME"
+    /usr/sbin/update-ccache-symlinks
+    echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc
+
+    # Clean package manager
+    apt -y autoremove
+    apt clean
+
+    # Linutils
+    cd "$HOME"
+    rm -rf .bashrc .zshrc
+
+    mkdir -p git
+    cd git
+    git clone https://github.com/matekelemen/linutils.git --depth 1
+    python3 linutils/install.py
+
+    # Repos
+    cd "$HOME"
+    mkdir -p git
+    cd git
+
+    # Krex
+    git clone https://github.com/matekelemen/krex.git krex --branch winsentvalid --depth 1 --recursive
 
     cd "$HOME"
     mkdir -p git
@@ -12,11 +80,12 @@ From: krex_source_ubuntu.sif
     # Build
     cd krex/build
     ./build_kratos.sh                                       \
-        -t RelWithDebInfo                                   \
+        -t Release                                          \
         -c gcc                                              \
         -m                                                  \
         -s                                                  \
         -a StructuralMechanicsApplication                   \
+        -a ConstitutiveLawsApplication                      \
         -a FluidDynamicsApplication                         \
         -a LinearSolversApplication                         \
         -a MappingApplication                               \
@@ -29,3 +98,8 @@ From: krex_source_ubuntu.sif
         -o -DTRILINOS_INCLUDE_DIR=/usr/include/trilinos     \
         -o -DTRILINOS_LIBRARY_DIR=/usr/lib/x86_64-linux-gnu \
         -o -DKRATOS_BUILD_TESTING=OFF
+
+%runscript
+    #!/usr/bin/bash
+    source /opt/intel/oneapi/setvars.sh
+    exec "$@"
