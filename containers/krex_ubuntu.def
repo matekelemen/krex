@@ -28,6 +28,7 @@ From: ubuntu:24.04
     apt -y update
     apt install -y --no-install-recommends                                                              \
         build-essential                                                                                 \
+        gfortran                                                                                        \
         ccache                                                                                          \
         ninja-build                                                                                     \
         libbenchmark-dev                                                                                \

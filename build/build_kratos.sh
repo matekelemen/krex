@@ -118,9 +118,11 @@ while getopts ":h m s f C b: i: t: c: o: a:" arg; do
             if [ "$compiler_family" = "gcc" ]; then
                 export CC="$(which gcc)"
                 export CXX="$(which g++)"
+                export FC="$(which gfortran)"
             elif [ "$compiler_family" = "clang" ]; then
                 export CC="$(which clang)"
                 export CXX="$(which clang++)"
+                export FC="$(which gfortran)"
             elif [ "$compiler_family" = "intel" ]; then
                 if [ -f "/opt/intel/oneapi/setvars.sh" ] ; then
                     source "/opt/intel/oneapi/setvars.sh" intel64
