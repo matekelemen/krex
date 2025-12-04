@@ -8,6 +8,7 @@ print_help() {
     echo "-h                    : print this help and exit"
     echo "-m                    : compile with MKL support"
     echo "-s                    : compile with SuiteSparse support"
+    echo "-f                    : compile with FEAST support"
     echo "-C                    : clean build and install directories, then exit"
     echo "-b build_path         : path to the build directory (created if it does not exist yet)"
     echo "-i install_path       : path to the install directory (created if it does not exist yet)"
@@ -50,6 +51,7 @@ ccache_flag=""                                          # <== sets CXX_COMPILER_
 mpi_flag="-DUSE_MPI:BOOL=OFF"                           # <== MPI flag to pass to CMake via USE_MPI
 mkl_flag="-DUSE_EIGEN_MKL:BOOL=OFF"                     # <== toggle support for Intel MKL
 suite_sparse_flag="-DUSE_EIGEN_SUITESPARSE:BOOL=OFF"    # <== toggle support for SuiteSparse
+feast_flag="-DUSE_EIGEN_FEAST:BOOL=OFF"                 # <== toggle support for FEAST
 
 # Define default arguments
 build_type="Release".                                   # <== passed to CMAKE_BUILD_TYPE
@@ -75,7 +77,7 @@ add_app() {
 }
 
 # Parse CL arguments
-while getopts ":h m s C b: i: t: c: o: a:" arg; do
+while getopts ":h m s f C b: i: t: c: o: a:" arg; do
     case $arg in
         h)  # Print help and exit without doing anything.
             print_help
@@ -86,6 +88,9 @@ while getopts ":h m s C b: i: t: c: o: a:" arg; do
             ;;
         s)  # Compile with SuiteSparse support.
             suite_sparse_flag="-DUSE_EIGEN_SUITESPARSE:BOOL=ON"
+            ;;
+        f)  # Compile with FEAST support
+            feast_flag="-DUSE_EIGEN_FEAST:BOOL=ON"
             ;;
         C)  # Set clean flag
             clean=1
@@ -223,6 +228,7 @@ if ! cmake                                                  \
     "$mpi_flag"                                             \
     "$mkl_flag"                                             \
     "$suite_sparse_flag"                                    \
+    "$feast_flag"                                           \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
     $(echo $cmake_arguments | tr '\;' '\n')                 \
     ; then
