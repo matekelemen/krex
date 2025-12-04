@@ -84,6 +84,7 @@ From: ubuntu:24.04
         -c gcc                                              \
         -m                                                  \
         -s                                                  \
+        -f                                                  \
         -a StructuralMechanicsApplication                   \
         -a ConstitutiveLawsApplication                      \
         -a FluidDynamicsApplication                         \
