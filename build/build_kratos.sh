@@ -13,7 +13,7 @@ print_help() {
     echo "-b build_path         : path to the build directory (created if it does not exist yet)"
     echo "-i install_path       : path to the install directory (created if it does not exist yet)"
     echo "-t build_type         : build type [FullDebug, Debug, Release, RelWithDebInfo, Custom] (Default: FullDebug)"
-    echo "-c compiler_name      : compiler family [gcc, clang, intel] (Default: gcc)"
+    echo "-c compiler_name      : compiler family [gcc, clang, intel, acpp] (Default: gcc)"
     echo "-o option             : options/arguments to pass on to CMake. Semicolon (;) delimited, or defined repeatedly."
     echo "-a application_name   : name or path of the application to build (can be passed repeatedly to add more applications)"
     echo
@@ -129,6 +129,9 @@ while getopts ":h m s f C b: i: t: c: o: a:" arg; do
                 fi
                 export CC="$(which icx)"
                 export CXX="$(which icpx)"
+            elif [ "$compiler_family" = "acpp" ]; then
+                export CC="$(which clang)"
+                export CXX="$(which acpp)"
             else
                 print_help
                 >&2 echo "Error: unsupported compiler family: $compiler_family"
