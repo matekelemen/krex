@@ -5,17 +5,20 @@ script_name="$(basename ${BASH_SOURCE[0]})"
 print_help() {
     echo "$script_name - Configure, build, and install KratosMultiphysics."
     echo "Usage: $script_name [OPTION [ARGUMENT]]"
-    echo "-h                    : print this help and exit"
-    echo "-m                    : compile with MKL support"
-    echo "-s                    : compile with SuiteSparse support"
-    echo "-f                    : compile with FEAST support"
-    echo "-C                    : clean build and install directories, then exit"
-    echo "-b build_path         : path to the build directory (created if it does not exist yet)"
-    echo "-i install_path       : path to the install directory (created if it does not exist yet)"
-    echo "-t build_type         : build type [FullDebug, Debug, Release, RelWithDebInfo, Custom] (Default: FullDebug)"
-    echo "-c compiler_name      : compiler family [gcc, clang, intel, acpp] (Default: gcc)"
-    echo "-o option             : options/arguments to pass on to CMake. Semicolon (;) delimited, or defined repeatedly."
-    echo "-a application_name   : name or path of the application to build (can be passed repeatedly to add more applications)"
+    echo "-h                    : Print this help and exit."
+    echo "-m                    : Compile with MKL support."
+    echo "-s                    : Compile with SuiteSparse support."
+    echo "-f                    : Compile with FEAST support."
+    echo "-d                    : Compile with support for distributed-memory parallelism (MPI)."
+    echo "-D                    : Detach the installed files from the repository"
+    echo "                        (changes in the repo source will not affect the installation)."
+    echo "-C                    : Clean build and install directories, then exit."
+    echo "-b build_path         : Path to the build directory (created if it does not exist yet)."
+    echo "-i install_path       : Path to the install directory (created if it does not exist yet)."
+    echo "-t build_type         : Build type [FullDebug, Debug, Release, RelWithDebInfo, Custom] (Default: FullDebug)."
+    echo "-c compiler_name      : Compiler family [gcc, clang, intel, acpp] (Default: gcc)."
+    echo "-o option             : Options/arguments to pass on to CMake. Semicolon (;) delimited, or defined repeatedly.."
+    echo "-a application_name   : Name or path of the application to build (can be passed repeatedly to add more applications)."
     echo
     echo "By default, Kratos is installed to the site-packages directory of the available python"
     echo "interpreter. This makes KratosMultiphysics and its applications immediately available from"
@@ -46,14 +49,14 @@ krex_source_dir="$(dirname "${script_dir}")"            # <== path to the krex r
 source_dir="${krex_source_dir}/src/kratos"              # <== path to the kratos repo root
 app_dir="${source_dir}/applications"                    # <== path to the app directory of the kratos repo
 
+# Define default arguments
 generator="Unix Makefiles"                              # <== name of the generator program in CMake
 ccache_flag=""                                          # <== sets CXX_COMPILER_LAUNCHER in CMake to ccache if available
 mpi_flag="-DUSE_MPI:BOOL=OFF"                           # <== MPI flag to pass to CMake via USE_MPI
 mkl_flag="-DUSE_EIGEN_MKL:BOOL=OFF"                     # <== toggle support for Intel MKL
 suite_sparse_flag="-DUSE_EIGEN_SUITESPARSE:BOOL=OFF"    # <== toggle support for SuiteSparse
 feast_flag="-DUSE_EIGEN_FEAST:BOOL=OFF"                 # <== toggle support for FEAST
-
-# Define default arguments
+detached_build=0                                        # <== decide whether to copy or symlink python scripts
 build_type="Release".                                   # <== passed to CMAKE_BUILD_TYPE
 build_dir="${source_dir}/build"                         # <== path to the build directory
 install_dir="$(get_site_packages_dir)"                  # <== path to install kratos to
@@ -77,7 +80,7 @@ add_app() {
 }
 
 # Parse CL arguments
-while getopts ":h m s f C b: i: t: c: o: a:" arg; do
+while getopts ":h m s f d D C b: i: t: c: o: a:" arg; do
     case $arg in
         h)  # Print help and exit without doing anything.
             print_help
@@ -91,6 +94,17 @@ while getopts ":h m s f C b: i: t: c: o: a:" arg; do
             ;;
         f)  # Compile with FEAST support
             feast_flag="-DUSE_EIGEN_FEAST:BOOL=ON"
+            ;;
+        d)  # Compile with MPI support
+            if command -v mpirun $> /dev/null; then
+                mpi_flag="-DUSE_MPI:BOOL=ON"
+            else
+                >&2 echo "Error: requested support for distributed-memory parallelism, but MPI is not available."
+                exit 1
+            fi
+            ;;
+        D)  # Copy python scripts to the install directory instead of symlinking them.
+            detached_build=1
             ;;
         C)  # Set clean flag
             clean=1
@@ -130,7 +144,9 @@ while getopts ":h m s f C b: i: t: c: o: a:" arg; do
                 export CC="$(which icx)"
                 export CXX="$(which icpx)"
             elif [ "$compiler_family" = "acpp" ]; then
-                export CC="$(which clang)"
+                # Locate AdaptiveCpp and its version of clang.
+                acpp_clangxx="$(acpp --acpp-version | sed -nE 's/default-clang: (.*)/\1/p')"
+                export CC=${acpp_clangxx::-2}
                 export CXX="$(which acpp)"
             else
                 print_help
@@ -198,11 +214,6 @@ if [ ${mkl_flag} = "-DUSE_EIGEN_MKL:BOOL=ON" ]; then
     fi
 fi
 
-# Check whether MPI is available
-if command -v mpirun $> /dev/null; then
-    mpi_flag="-DUSE_MPI:BOOL=ON"
-fi
-
 # Create the build directory if it does not exist yet
 if [ ! -d "$build_dir" ]; then
     mkdir -p "$build_dir"
@@ -219,7 +230,9 @@ if command -v ccache &>/dev/null; then
 fi
 
 # Generate with CMake
-export KRATOS_INSTALL_PYTHON_USING_LINKS="ON"
+if [ $detached_build = 0 ]; then
+    export KRATOS_INSTALL_PYTHON_USING_LINKS="ON"
+fi
 
 # Configure
 if ! cmake                                                  \
