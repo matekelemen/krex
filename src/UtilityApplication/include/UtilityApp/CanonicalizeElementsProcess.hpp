@@ -1,5 +1,7 @@
 /// @author Máté Kelemen
 
+#pragma once
+
 // --- UtilityApp Includes ---
 #include "UtilityApp/common.hpp" // Ref
 

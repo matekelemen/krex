@@ -2,6 +2,7 @@
 
 // -- UtilityApp Includes ---
 #include "bindings/UtilityApplication.hpp"
+#include "UtilityApp/FindElementsByCrossSection.hpp"
 #include "UtilityApp/CanonicalizeElementsProcess.hpp"
 #include "UtilityApp/AMGCLWrapper.hpp"
 
@@ -15,8 +16,7 @@ namespace Kratos {
 
 
 template <class TValue, class TSolver>
-void RegisterLinearSolver(const std::string& rName)
-{
+void RegisterLinearSolver(const std::string& rName) {
     static auto factory = StandardLinearSolverFactory<
         TUblasSparseSpace<TValue>,
         TUblasDenseSpace<double>,
@@ -32,17 +32,26 @@ void RegisterLinearSolver(const std::string& rName)
 
 UtilityApplication::UtilityApplication()
     : KratosApplication("UtilityApplication")
-{
-}
+{}
 
 
-void UtilityApplication::Register()
-{
+void UtilityApplication::Register() {
     KRATOS_TRY
 
-    RegistryAuxiliaries::RegisterProcessWithPrototype("UtilityApplication",
-                                                      "CanonicalizeElementsProcess",
-                                                      UtilityApp::CanonicalizeElementsProcess());
+    RegistryAuxiliaries::RegisterProcessWithPrototype(
+        "UtilityApplication",
+        "CanonicalizeElementsProcess",
+        UtilityApp::CanonicalizeElementsProcess());
+
+    RegistryAuxiliaries::RegisterProcessWithPrototype(
+        "UtilityApplication",
+        "FindElementsByCrossSectionProcess",
+        UtilityApp::FindElementsByCrossSectionProcess());
+
+    RegistryAuxiliaries::RegisterOperationWithPrototype(
+        "UtilityApplication",
+        "FindElementsByCrossSectionOperation",
+        UtilityApp::FindElementsByCrossSectionOperation());
 
     RegisterLinearSolver<double,AMGCLWrapper<
         TUblasSparseSpace<double>,
