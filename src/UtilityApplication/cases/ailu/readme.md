@@ -6,6 +6,12 @@ Example case for a framework to experiment with training and using ML-based prec
 
 Let's say you had the terrible idea of replacing your preconditioner (i.e. linear algebra) with a neural network (i.e. even more linear algebra). This example demonstrates how you'd go about training your network for a specific problem, and using the trained network to replace the preconditioner of an iterative linear solver in *KratosMultiphysics*.
 
+## Dependencies
+
+- `KratosMultiphysics` ([branch of a fork](https://github.com/matekelemen/kratos/tree/linearsolvers/generic-preconditioner))
+    - `LinearSolversApplication`
+    - `StructuralMechanicsApplication`
+
 ## Example Model
 
 The example defines a static linear elasticity problem defined on a cube, discretized by 4 tetrahedra.
