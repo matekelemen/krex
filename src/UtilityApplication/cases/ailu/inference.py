@@ -20,15 +20,15 @@ class PreconditionedLinearSolverFactory:
 
     def __init__(self, solver: MechanicalSolver) -> None:
         self.__original_factory = solver._CreateLinearSolver
+        self.__preconditioner: KratosMultiphysics.Preconditioner = KratosMultiphysics.LinearSolversApplication.SubstitutionPreconditioner(
+            self.__ReadCSRMatrix(pathlib.Path("lower_triangle.mm")),
+            self.__ReadCSRMatrix(pathlib.Path("upper_triangle.mm")))
 
 
     def __call__(self) -> KratosMultiphysics.LinearSolver:
         """Replace the preconditioner of the linear solver constructed by PythonSolver."""
         linear_solver: KratosMultiphysics.IterativeSolver = self.__original_factory()
-        preconditioner: KratosMultiphysics.Preconditioner = KratosMultiphysics.LinearSolversApplication.SubstitutionPreconditioner(
-            self.__ReadCSRMatrix(pathlib.Path("lower_triangle.mm")),
-            self.__ReadCSRMatrix(pathlib.Path("upper_triangle.mm")))
-        linear_solver.Preconditioner = preconditioner
+        linear_solver.Preconditioner = self.__preconditioner
         return linear_solver
 
 
@@ -76,12 +76,11 @@ if __name__ == "__main__":
     parser: argparse.ArgumentParser = argparse.ArgumentParser(pathlib.Path(__file__).stem)
     parser.add_argument(
         "-p",
-        "--preconditioned",
-        dest = "preconditioned",
-        action = "store_const",
-        help = "Use your preconditioner",
-        default = False,
-        const = True)
+        "--preconditioner",
+        dest = "preconditioner",
+        type = str,
+        default = "none",
+        choices = ["none", "diagonal", "ilu0", "ilu", "substitution"])
     arguments: argparse.Namespace = parser.parse_args()
 
     # Load the analysis configuration.
@@ -91,7 +90,13 @@ if __name__ == "__main__":
 
     # Run the analysis.
     model: KratosMultiphysics.Model = KratosMultiphysics.Model()
-    analysis: Analysis = CustomAnalysis(model, parameters) if arguments.preconditioned else Analysis(model, parameters)
+    analysis: Analysis
+    if arguments.preconditioner == "substitution":
+        analysis = CustomAnalysis(model, parameters)
+    else:
+        parameters["solver_settings"]["linear_solver_settings"].AddString("preconditioner_type", arguments.preconditioner)
+        analysis = Analysis(model, parameters)
+
     analysis.Run()
 
     # Print the number of iterations.
