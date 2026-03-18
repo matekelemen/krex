@@ -6,7 +6,6 @@ import numpy
 # --- Kratos Imports ---
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
-import KratosMultiphysics.LinearSolversApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as Analysis
 
 # --- STD Imports ---
@@ -14,17 +13,19 @@ import pathlib
 import os
 import json
 
-
 class AnalysisContext:
+
     def __init__(self, parameters: KratosMultiphysics.Parameters) -> None:
         self.__model: KratosMultiphysics.Model = KratosMultiphysics.Model()
         self.__analysis: Analysis = Analysis(self.__model, parameters)
+
 
     def __enter__(self) -> Analysis:
         self.__analysis.Initialize()
         self.__analysis._AdvanceTime()
         self.__analysis.InitializeSolutionStep()
         return self.__analysis
+
 
     def __exit__(self, *args) -> None:
         self.__analysis.FinalizeSolutionStep()
@@ -33,22 +34,25 @@ class AnalysisContext:
 
 
 class TrainingContext:
+
     def __init__(self) -> None:
-        self.__iteration_counter: int = 0
+        self.__decomposition = None
         pass
+
 
     def __enter__(self) -> "TrainingContext":
-        # Initialize whatever you need for training your network.
         return self
 
+
     def __exit__(self, *args) -> None:
-        # Output your network here.
-        pass
+        with open("lower_triangle.mm", "bw") as file:
+            scipy.io.mmwrite(file, self.__decomposition.L)
+        with open("upper_triangle.mm", "bw") as file:
+            scipy.io.mmwrite(file, self.__decomposition.U)
+
 
     def Process(self, analysis: Analysis) -> None:
         """Do whatever you need to do with the analysis."""
-        self.__iteration_counter += 1
-
         # Fetch the system matrix.
         lhs: KratosMultiphysics.CompressedMatrix = self.__FetchLHS(analysis)
 
@@ -60,19 +64,27 @@ class TrainingContext:
         row_extents: numpy.ndarray = numpy.array(
             lhs.index1_data(),
             copy = False)
-        print(f"row extents: {row_extents}")
         column_indices: numpy.ndarray = numpy.array(
             lhs.index2_data(),
             copy = False)
-        print(f"column indices: {column_indices}")
         entries: numpy.ndarray = numpy.array(
             lhs.value_data(),
             copy = False)
-        print(f"nonzeros: {entries}")
+
+        # Wrap to scipy format.
+        scipy_lhs: scipy.sparse.csr_matrix = scipy.sparse.csr_matrix((
+            entries,
+            column_indices,
+            row_extents))
+
+        # Compute a decomposition using scipy.
+        self.__decomposition = scipy.sparse.linalg.spilu(scipy_lhs)
+
 
     def __bool__(self) -> bool:
         """Return True while you need more iterations."""
-        return 1 < self.__iteration_counter
+        return self.__decomposition is None
+
 
     @staticmethod
     def __FetchLHS(analysis: Analysis) -> KratosMultiphysics.CompressedMatrix:
