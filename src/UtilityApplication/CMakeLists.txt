@@ -9,22 +9,28 @@ set(application_core_name "${PROJECT_NAME}Core")
 set(application_name "${PROJECT_NAME}Application")
 set(module_name Kratos${application_name})
 
+# The HDF5 app does not publicly link the HDF5 libs ...
+find_package(HDF5 REQUIRED COMPONENTS C)
+
 # Define core C++ library
 file(GLOB sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 add_library(${application_core_name} SHARED ${sources})
-target_include_directories(${application_core_name} PUBLIC
-                           "${KRATOS_SOURCE_DIR}/kratos"
-                           "${CMAKE_CURRENT_SOURCE_DIR}/include"
-                           "${KRATOS_SOURCE_DIR}/applications/HDF5Application"
-                           "${KRATOS_SOURCE_DIR}/applications/MedApplication"
-                           "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication"
-                           "${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication")
-target_link_libraries(${application_core_name} PUBLIC
-                      KratosCore
-                      KratosMedCore
-                      KratosHDF5Core
-                      KratosLinearSolversCore
-                      KratosStructuralMechanicsCore)
+target_include_directories(
+    ${application_core_name} PUBLIC
+        "${KRATOS_SOURCE_DIR}/kratos"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        "${KRATOS_SOURCE_DIR}/applications/HDF5Application"
+        "${KRATOS_SOURCE_DIR}/applications/MedApplication"
+        "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication"
+        "${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication")
+target_link_libraries(
+    ${application_core_name} PUBLIC
+        KratosCore
+        KratosMedCore
+        KratosHDF5Core
+        KratosLinearSolversCore
+        KratosStructuralMechanicsCore
+        hdf5::hdf5)
 
 # Dependency configuration
 if (${AMGCL_GPGPU} MATCHES ON)
