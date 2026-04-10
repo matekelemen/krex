@@ -7,3 +7,6 @@
 [submodule "applications/BenchmarkApplication"]
 	path = src/BenchmarkApplication
 	url = https://github.com/matekelemen/BenchmarkApplication
+[submodule "src/CiEApplication"]
+	path = src/CiEApplication
+	url = https://github.com/matekelemen/CiEApplication.git
